@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import './Consulta.css';
 
@@ -7,6 +7,154 @@ export default function ConsultationPage() {
   
   // Decode the patient name from URL
   const patientName = decodeURIComponent(patient || 'María González');
+
+  // State for medications
+  const [medications, setMedications] = useState([]);
+  const [showMedicationForm, setShowMedicationForm] = useState(false);
+  const [showPdfSummary, setShowPdfSummary] = useState(false);
+  const [medicationForm, setMedicationForm] = useState({
+    medicamento: "",
+    dosis: "",
+    frecuencia: "",
+    duracion: "",
+    instrucciones: "",
+  });
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const medicationsPerPage = 5;
+  
+  // State for next appointment
+  const [nextAppointment, setNextAppointment] = useState({
+    fecha: "",
+    hora: "",
+    tipo: "Presencial",
+  });
+  
+  // State for lab orders
+  const [labOrders, setLabOrders] = useState([]);
+  const [showLabOrderForm, setShowLabOrderForm] = useState(false);
+  const [labOrderForm, setLabOrderForm] = useState({
+    estudio: "",
+    indicaciones: "",
+  });
+
+  const handleAddMedication = () => {
+    if (medicationForm.medicamento.trim()) {
+      const newMedication = {
+        id: Date.now().toString(),
+        ...medicationForm,
+      };
+      setMedications([...medications, newMedication]);
+      setMedicationForm({
+        medicamento: "",
+        dosis: "",
+        frecuencia: "",
+        duracion: "",
+        instrucciones: "",
+      });
+      setShowMedicationForm(false);
+      // Reset to first page when adding a new medication
+      setCurrentPage(1);
+    }
+  };
+
+  const handleCancelMedication = () => {
+    setMedicationForm({
+      medicamento: "",
+      dosis: "",
+      frecuencia: "",
+      duracion: "",
+      instrucciones: "",
+    });
+    setShowMedicationForm(false);
+  };
+  
+  const handleAddLabOrder = () => {
+    if (labOrderForm.estudio.trim()) {
+      const newLabOrder = {
+        id: Date.now().toString(),
+        ...labOrderForm,
+      };
+      setLabOrders([...labOrders, newLabOrder]);
+      setLabOrderForm({
+        estudio: "",
+        indicaciones: "",
+      });
+      setShowLabOrderForm(false);
+    }
+  };
+  
+  const handleCancelLabOrder = () => {
+    setLabOrderForm({
+      estudio: "",
+      indicaciones: "",
+    });
+    setShowLabOrderForm(false);
+  };
+  
+  const handleScheduleAppointment = () => {
+    if (nextAppointment.fecha) {
+      alert(`Cita programada para el ${nextAppointment.fecha} a las ${nextAppointment.hora || '--:--'} (${nextAppointment.tipo})`);
+      // Aquí iría la lógica para guardar la cita
+    } else {
+      alert("Por favor, selecciona una fecha para la cita");
+    }
+  };
+
+  const handleSaveConsultation = () => {
+    setShowPdfSummary(true);
+  };
+
+  // ... (código anterior se mantiene igual)
+
+const handlePrintPdf = () => {
+  // Forzar un re-render antes de imprimir
+  setShowPdfSummary(true);
+  
+  // Usar un timeout para asegurar que el modal se haya renderizado
+  setTimeout(() => {
+    const originalTitle = document.title;
+    document.title = `Resumen_Consulta_${patientData.name.replace(/\s+/g, '_')}`;
+    
+    // Ocultar elementos que no deben imprimirse
+    const actionButtons = document.querySelector('.pdf-action-buttons');
+    const closeButton = document.querySelector('.pdf-close-btn');
+    const modalHeader = document.querySelector('.pdf-header');
+    
+    if (actionButtons) actionButtons.style.display = 'none';
+    if (closeButton) closeButton.style.display = 'none';
+    if (modalHeader) modalHeader.style.display = 'none';
+    
+    window.print();
+    
+    // Restaurar los elementos después de imprimir
+    setTimeout(() => {
+      if (actionButtons) actionButtons.style.display = 'flex';
+      if (closeButton) closeButton.style.display = 'block';
+      if (modalHeader) modalHeader.style.display = 'flex';
+      
+      document.title = originalTitle;
+    }, 500);
+  }, 100);
+};
+
+  const handleEmailPdf = () => {
+    // In a real app, this would trigger email functionality
+    alert("Funcionalidad de envío por email próximamente");
+  };
+
+  // Get current date for the PDF summary
+  const currentDate = new Date();
+  const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+
+  // Pagination logic
+  const indexOfLastMedication = currentPage * medicationsPerPage;
+  const indexOfFirstMedication = indexOfLastMedication - medicationsPerPage;
+  const currentMedications = medications.slice(indexOfFirstMedication, indexOfLastMedication);
+  const totalPages = Math.ceil(medications.length / medicationsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Mock patient data
   const patientData = {
@@ -243,20 +391,404 @@ export default function ConsultationPage() {
               <div className="card-header">
                 <div className="medication-header">
                   <h3 className="card-title">Medicamentos</h3>
-                  <button className="add-medication-btn">
+                  <button 
+                    className="add-medication-btn"
+                    onClick={() => setShowMedicationForm(true)}
+                  >
                     + Agregar
                   </button>
                 </div>
               </div>
               <div className="card-content">
-                <div className="empty-medications">
-                  No hay medicamentos agregados
+                {showMedicationForm ? (
+                  <div className="medication-form">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="medicamento" className="form-label">Medicamento</label>
+                        <input
+                          id="medicamento"
+                          type="text"
+                          className="form-input"
+                          value={medicationForm.medicamento}
+                          onChange={(e) => setMedicationForm({...medicationForm, medicamento: e.target.value})}
+                          placeholder="Medicamento"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="dosis" className="form-label">Dosis</label>
+                        <input
+                          id="dosis"
+                          type="text"
+                          className="form-input"
+                          value={medicationForm.dosis}
+                          onChange={(e) => setMedicationForm({...medicationForm, dosis: e.target.value})}
+                          placeholder="Dosis"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="frecuencia" className="form-label">Frecuencia</label>
+                        <input
+                          id="frecuencia"
+                          type="text"
+                          className="form-input"
+                          value={medicationForm.frecuencia}
+                          onChange={(e) => setMedicationForm({...medicationForm, frecuencia: e.target.value})}
+                          placeholder="Frecuencia"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="duracion" className="form-label">Duración</label>
+                        <input
+                          id="duracion"
+                          type="text"
+                          className="form-input"
+                          value={medicationForm.duracion}
+                          onChange={(e) => setMedicationForm({...medicationForm, duracion: e.target.value})}
+                          placeholder="Duración"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="instrucciones" className="form-label">Instrucciones Especiales</label>
+                      <textarea
+                        id="instrucciones"
+                        className="form-textarea"
+                        value={medicationForm.instrucciones}
+                        onChange={(e) => setMedicationForm({...medicationForm, instrucciones: e.target.value})}
+                        placeholder="Instrucciones especiales"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="form-buttons">
+                      <button 
+                        className="cancel-button"
+                        onClick={handleCancelMedication}
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        className="accept-button"
+                        onClick={handleAddMedication}
+                      >
+                        Aceptar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {medications.length === 0 ? (
+                      <div className="empty-medications">
+                        No hay medicamentos agregados
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="medications-list">
+                          {currentMedications.map((medication) => (
+                            <div key={medication.id} className="medication-card">
+                              <h4 className="medication-name">{medication.medicamento}</h4>
+                              <div className="medication-details">
+                                <div className="medication-detail">
+                                  <span className="detail-label">Dosis:</span> {medication.dosis}
+                                </div>
+                                <div className="medication-detail">
+                                  <span className="detail-label">Frecuencia:</span> {medication.frecuencia}
+                                </div>
+                                <div className="medication-detail">
+                                  <span className="detail-label">Duración:</span> {medication.duracion}
+                                </div>
+                                {medication.instrucciones && (
+                                  <div className="medication-detail">
+                                    <span className="detail-label">Instrucciones:</span> {medication.instrucciones}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                          <div className="pagination-controls">
+                            <button
+                              className="pagination-btn"
+                              onClick={() => paginate(currentPage - 1)}
+                              disabled={currentPage === 1}
+                            >
+                              &laquo; Anterior
+                            </button>
+                            
+                            <div className="pagination-numbers">
+                              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                                <button
+                                  key={pageNumber}
+                                  className={`pagination-number ${currentPage === pageNumber ? 'active' : ''}`}
+                                  onClick={() => paginate(pageNumber)}
+                                >
+                                  {pageNumber}
+                                </button>
+                              ))}
+                            </div>
+                            
+                            <button
+                              className="pagination-btn"
+                              onClick={() => paginate(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                            >
+                              Siguiente &raquo;
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Lab Orders Section */}
+            <div className="record-card">
+              <div className="card-header">
+                <div className="medication-header">
+                  <h3 className="card-title">Órdenes de laboratorio</h3>
+                  <button 
+                    className="add-medication-btn"
+                    onClick={() => setShowLabOrderForm(true)}
+                  >
+                    + Agregar
+                  </button>
                 </div>
               </div>
+              <div className="card-content">
+                {showLabOrderForm ? (
+                  <div className="medication-form">
+                    <div className="form-group">
+                      <label htmlFor="estudio" className="form-label">Estudio</label>
+                      <input
+                        id="estudio"
+                        type="text"
+                        className="form-input"
+                        value={labOrderForm.estudio}
+                        onChange={(e) => setLabOrderForm({...labOrderForm, estudio: e.target.value})}
+                        placeholder="Nombre del estudio"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="indicaciones" className="form-label">Indicaciones</label>
+                      <textarea
+                        id="indicaciones"
+                        className="form-textarea"
+                        value={labOrderForm.indicaciones}
+                        onChange={(e) => setLabOrderForm({...labOrderForm, indicaciones: e.target.value})}
+                        placeholder="Indicaciones especiales"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="form-buttons">
+                      <button 
+                        className="cancel-button"
+                        onClick={handleCancelLabOrder}
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        className="accept-button"
+                        onClick={handleAddLabOrder}
+                      >
+                        Aceptar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {labOrders.length === 0 ? (
+                      <div className="empty-medications">
+                        No hay órdenes de laboratorio
+                      </div>
+                    ) : (
+                      <div className="medications-list">
+                        {labOrders.map((order) => (
+                          <div key={order.id} className="medication-card">
+                            <h4 className="medication-name">{order.estudio}</h4>
+                            {order.indicaciones && (
+                              <div className="medication-detail">
+                                <span className="detail-label">Indicaciones:</span> {order.indicaciones}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Next Appointment Section */}
+            <div className="record-card">
+              <div className="card-header">
+                <div className="medication-header">
+                  <h3 className="card-title">Próxima cita</h3>
+                  <button 
+                    className="add-medication-btn"
+                    onClick={handleScheduleAppointment}
+                  >
+                    Programar Cita
+                  </button>
+                </div>
+              </div>
+              <div className="card-content">
+                <div className="appointment-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="fecha" className="form-label">Fecha</label>
+                      <input
+                        id="fecha"
+                        type="date"
+                        className="form-input"
+                        value={nextAppointment.fecha}
+                        onChange={(e) => setNextAppointment({...nextAppointment, fecha: e.target.value})}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="hora" className="form-label">Hora</label>
+                      <input
+                        id="hora"
+                        type="time"
+                        className="form-input"
+                        value={nextAppointment.hora}
+                        onChange={(e) => setNextAppointment({...nextAppointment, hora: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="tipo-cita" className="form-label">Tipo de Cita</label>
+                    <select
+                      id="tipo-cita"
+                      className="form-input"
+                      value={nextAppointment.tipo}
+                      onChange={(e) => setNextAppointment({...nextAppointment, tipo: e.target.value})}
+                    >
+                      <option value="Presencial">Presencial</option>
+                      <option value="Virtual">Virtual</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons Section */}
+            <div className="action-buttons">
+              <Link to="/dashboard" className="cancel-action-btn">
+                Cancelar
+              </Link>
+              <button className="save-consultation-btn" onClick={handleSaveConsultation}>
+                Guardar Consulta
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* PDF Summary Modal */}
+      {showPdfSummary && (
+        <div className="pdf-modal-overlay">
+          <div className="pdf-modal-content">
+            <div className="pdf-header">
+              <h1 className="pdf-title">Resumen de consulta-{patientData.name}</h1>
+              <button 
+                className="pdf-close-btn"
+                onClick={() => setShowPdfSummary(false)}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="pdf-content">
+              {/* Doctor Info Section */}
+              <div className="pdf-doctor-info">
+                <h2 className="pdf-doctor-name">Dr. Melanie Espinoza</h2>
+                <p className="pdf-doctor-specialty">Medicina General</p>
+                <p className="pdf-doctor-contact">Cédula: 001-241003-10338 Tel: 7616-8096</p>
+                
+                <div className="pdf-consultation-info">
+                  <h3 className="pdf-consultation-title">Resumen de Consulta Médica</h3>
+                  <p className="pdf-consultation-date">Fecha: {formattedDate}</p>
+                </div>
+              </div>
+
+              <div className="pdf-divider"></div>
+
+              {/* Patient Information */}
+              {/* Patient Information */}
+              {/* Patient Information */}
+              <div className="pdf-patient-info">
+                <h3 className="pdf-section-title">Paciente</h3>
+                <table className="pdf-patient-details">
+                  <tbody>
+                    <tr className="pdf-patient-detail">
+                      <td className="pdf-detail-label">Nombre:</td>
+                      <td className="pdf-detail-value">{patientData.name}</td>
+                    </tr>
+                    <tr className="pdf-patient-detail">
+                      <td className="pdf-detail-label">Expediente:</td>
+                      <td className="pdf-detail-value">{patientData.id}</td>
+                    </tr>
+                    <tr className="pdf-patient-detail">
+                      <td className="pdf-detail-label">Edad:</td>
+                      <td className="pdf-detail-value">{patientData.age}</td>
+                    </tr>
+                    <tr className="pdf-patient-detail">
+                      <td className="pdf-detail-label">Tipo de Consulta:</td>
+                      <td className="pdf-detail-value">{patientData.type}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pdf-divider"></div>
+
+              {/* General Recommendations */}
+              <div className="pdf-recommendations">
+                <h3 className="pdf-section-title">Recomendaciones Generales</h3>
+                <ul className="pdf-recommendations-list">
+                  <li>Tome los medicamentos según las indicaciones</li>
+                  <li>Mantenga una dieta balanceada y ejercicio regular</li>
+                  <li>Acuda a su próxima cita programada</li>
+                  <li>En caso de emergencia, acuda al servicio de urgencias más cercano</li>
+                  <li>Si tiene dudas, no dude en contactarnos</li>
+                </ul>
+              </div>
+
+              <div className="pdf-divider"></div>
+
+              {/* Doctor Signature */}
+              <div className="pdf-signature">
+                <p className="pdf-signature-label">Firma del médico</p>
+                <div className="pdf-signature-details">
+                  <p className="pdf-doctor-name-signature">Dr. Melanie Espinoza</p>
+                  <p className="pdf-doctor-specialty-signature">Medicina General</p>
+                  <p className="pdf-doctor-license">Cédula Profesional: 12345678</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pdf-action-buttons">
+              <button className="pdf-action-btn pdf-cancel-btn" onClick={() => setShowPdfSummary(false)}>
+                Cerrar
+              </button>
+              <button className="pdf-action-btn pdf-print-btn" onClick={handlePrintPdf}>
+                Imprimir Resumen
+              </button>
+              <button className="pdf-action-btn pdf-email-btn" onClick={handleEmailPdf}>
+                Enviar por email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
