@@ -10,11 +10,12 @@ import DashboardPage from "./components/Dashboard";
 import ConsultaPage from "./components/Consulta";
 import Layout from "./components/Layout";
 import "./App.css";
-import TeleconsultasPage from "./components/Teleconsultas";
+import TeleConsulta from "./components/Teleconsulta";
 import ExpedientePage from "./components/Expediente";
 import ArchivosPage from "./components/Archivos";
 import SeguimientoPage from "./components/Seguimiento";
 import ConfiguracionPage from "./components/Configuracion";
+import TeleconsultasList from "./components/TeleconsultasList";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -52,7 +53,7 @@ function App() {
             }
           />
           
-          {/* Ruta de consulta - tiene su propia estructura interna */}
+          {/* Ruta de consulta presencial */}
           <Route
             path="/consulta/:patient"
             element={
@@ -62,12 +63,22 @@ function App() {
             }
           />
           
-          {/* Otras rutas que usarán su propia estructura */}
+          {/* Ruta para lista de teleconsultas */}
           <Route
             path="/teleconsultas"
             element={
               <Layout isAuthenticated={isAuthenticated}>
-                <TeleconsultasPage />
+                <TeleconsultasList />
+              </Layout>
+            }
+          />
+
+          {/* Ruta para teleconsulta individual */}
+          <Route
+            path="/teleconsulta/:patient"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <TeleConsulta />
               </Layout>
             }
           />

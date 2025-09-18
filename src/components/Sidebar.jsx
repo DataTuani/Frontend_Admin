@@ -63,15 +63,19 @@ export default function Sidebar() {
     }
   ];
 
-  // Check if current path matches or starts with the menu item path
- // Check if current path matches or starts with the menu item path
-const isActive = (path) => {
-  // Si estamos en una consulta y el path es dashboard, también debe estar activo
-  if (path === "/dashboard" && location.pathname.startsWith("/consulta/")) {
-    return true;
-  }
-  return location.pathname === path || location.pathname.startsWith(path + '/');
-};
+  // Función para verificar si una ruta está activa
+  const isActive = (path) => {
+    // Si estamos en una consulta presencial y el path es dashboard
+    if (path === "/dashboard" && location.pathname.startsWith("/consulta/")) {
+      return true;
+    }
+    // Si estamos en una teleconsulta y el path es teleconsultas
+    if (path === "/teleconsultas" && location.pathname.startsWith("/teleconsulta/")) {
+      return true;
+    }
+    // Para otras rutas
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
 
   return (
     <div className="sidebar">
