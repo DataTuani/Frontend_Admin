@@ -101,10 +101,10 @@ export default function MainContent() {
                     {appointment.status}
                   </span>
                 <button 
-                className="attend-button"
-                onClick={() => navigate(`/consulta/${encodeURIComponent(appointment.patient)}`)}
+                  className="attend-button"
+                  onClick={() => navigate(`/consulta/${encodeURIComponent(appointment.patient)}`)}
                 >
-                Atender
+                  Atender
                 </button>
                 </div>
               </div>

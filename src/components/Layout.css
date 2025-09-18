@@ -1,0 +1,27 @@
+
+.app-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: block;
+  overflow-x: hidden;
+}
+
+/* Reset para asegurar que no haya márgenes o paddings no deseados */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Asegurar que el contenido principal ocupe todo el espacio */
+.main-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}

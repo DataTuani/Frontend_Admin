@@ -1,5 +1,5 @@
 .sidebar {
-  width: 16rem;
+  width: 16rem; /* Este debe coincidir con el margin-left del dashboard-main */
   background-color: white;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -51,13 +51,14 @@
   font-size: 0.9rem;
 }
 
-.nav-item:hover {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
 .nav-item-active {
   background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.nav-item-active:hover {
+  background-color: #2563eb;
   color: white;
 }
 

@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './components/Login';
-import DashboardPage from './components/Dashboard';
-import ConsultaPage from './components/Consulta';
-import Layout from './components/Layout';
-import './App.css';
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import LoginPage from "./components/Login";
+import DashboardPage from "./components/Dashboard";
+import ConsultaPage from "./components/Consulta";
+import Layout from "./components/Layout";
+import "./App.css";
+import TeleconsultasPage from "./components/Teleconsultas";
+import ExpedientePage from "./components/Expediente";
+import ArchivosPage from "./components/Archivos";
+import SeguimientoPage from "./components/Seguimiento";
+import ConfiguracionPage from "./components/Configuracion";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,33 +31,91 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route 
-            path="/login" 
+          <Route
+            path="/login"
             element={
-              isAuthenticated ? 
-              <Navigate to="/dashboard" replace /> : 
-              <LoginPage onLogin={handleLogin} />
-            } 
+              isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <LoginPage onLogin={handleLogin} />
+              )
+            }
           />
-          <Route 
-            path="/dashboard" 
+          
+          {/* Rutas que usan la estructura completa del dashboard */}
+          <Route
+            path="/dashboard"
             element={
               <Layout isAuthenticated={isAuthenticated}>
                 <DashboardPage />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/consulta/:pacienteId" 
+          
+          {/* Ruta de consulta - tiene su propia estructura interna */}
+          <Route
+            path="/consulta/:patient"
             element={
               <Layout isAuthenticated={isAuthenticated}>
                 <ConsultaPage />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/" 
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+          
+          {/* Otras rutas que usarán su propia estructura */}
+          <Route
+            path="/teleconsultas"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <TeleconsultasPage />
+              </Layout>
+            }
+          />
+          
+          <Route
+            path="/expediente"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <ExpedientePage />
+              </Layout>
+            }
+          />
+          
+          <Route
+            path="/archivos"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <ArchivosPage />
+              </Layout>
+            }
+          />
+          
+          <Route
+            path="/seguimiento"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <SeguimientoPage />
+              </Layout>
+            }
+          />
+          
+          <Route
+            path="/configuracion"
+            element={
+              <Layout isAuthenticated={isAuthenticated}>
+                <ConfiguracionPage />
+              </Layout>
+            }
+          />
+          
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to={isAuthenticated ? "/dashboard" : "/login"}
+                replace
+              />
+            }
           />
         </Routes>
       </div>

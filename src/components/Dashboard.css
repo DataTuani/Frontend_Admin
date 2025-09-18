@@ -2,13 +2,41 @@
   min-height: 100vh;
   background-color: #f9fafb;
   display: flex;
+  position: relative;
 }
 
+/* Sidebar fijo */
+.dashboard-container .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 40;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  width: 16rem; /* Ancho fijo para el sidebar */
+}
+
+/* Área principal - CORREGIDO */
 .dashboard-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 16rem; /* Dejar espacio para el sidebar */
+  width: calc(100% - 16rem); /* Calcular ancho restante */
+}
+
+/* HEADER: Asegurar que esté alineado correctamente - CORREGIDO */
+.dashboard-main > .header {
+  width: 100%; /* Ocupar todo el ancho del contenedor padre */
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin-left: 0; /* Eliminar margen izquierdo */
 }
 
 .dashboard-content {
@@ -17,16 +45,50 @@
   display: flex;
   gap: 1.5rem;
   overflow: auto;
+  width: 100%;
 }
 
+/* Ajustar el contenido principal */
+.dashboard-content > :first-child {
+  flex: 2;
+  min-width: 0;
+}
+
+.dashboard-content > :last-child {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
   .dashboard-content {
     flex-direction: column;
+  }
+  
+  .dashboard-main,
+  .dashboard-main > .header {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .dashboard-container .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .dashboard-container.sidebar-open .sidebar {
+    transform: translateX(0);
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-content {
     padding: 1rem;
+  }
+  
+  .dashboard-content > :last-child {
+    min-width: 100%;
+    max-width: 100%;
   }
 }
