@@ -1,9 +1,11 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
+import { authService } from '../services/auth';
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const menuItems = [
     {
@@ -77,6 +79,12 @@ export default function Sidebar() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const handleLogout = () => {
+      authService.logout();
+      
+      navigate('/login');
+  }
+
   return (
     <div className="sidebar">
       <div className="sidebar-content">
@@ -103,12 +111,12 @@ export default function Sidebar() {
 
       {/* Logout Button */}
       <div className="sidebar-footer">
-        <Link to="/" className="logout-btn">
+        <button onClick={handleLogout} className="logout-btn">
           <svg className="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           <span className="logout-text">Cerrar sesión</span>
-        </Link>
+        </button>
       </div>
     </div>
   );

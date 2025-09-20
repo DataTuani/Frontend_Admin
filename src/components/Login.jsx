@@ -1,12 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { authService } from '../services/auth';
 import './Login.css';
 
 export default function LoginPage({ onLogin }) {
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({
+    correo: '',
+    contraseña: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí iría la lógica de autenticación
-    onLogin(); // Simula el login exitoso
+    setLoading(true);
+    setError('');
+
+    try {
+      // Llamar al servicio de autenticación
+      const response = await authService.login({
+        username: formData.correo, // Usamos el correo como username
+        password: formData.contraseña
+      });
+
+      console.log('Login exitoso:', response);
+      
+      // Si el login es exitoso, llamar a la función onLogin
+      if (onLogin) {
+        onLogin(response); // Puedes pasar los datos del usuario si los necesitas
+      }
+
+    } catch (err) {
+      setError(err.message || 'Error en el login. Verifica tus credenciales.');
+      console.error('Error en login:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
   };
 
   return (
@@ -24,7 +61,7 @@ export default function LoginPage({ onLogin }) {
         <form className="login-form" onSubmit={handleSubmit}>
           {/* Email Field */}
           <div className="form-group">
-            <label htmlFor="email" className="form-label">
+            <label htmlFor="correo" className="form-label">
               <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -36,16 +73,20 @@ export default function LoginPage({ onLogin }) {
               Correo
             </label>
             <input
-              id="email"
+              id="correo"
               type="email"
               placeholder="Ingrese correo"
               className="form-input"
+              value={formData.correo}
+              onChange={handleChange}
+              required
+              disabled={loading}
             />
           </div>
 
           {/* Password Field */}
           <div className="form-group">
-            <label htmlFor="password" className="form-label">
+            <label htmlFor="contraseña" className="form-label">
               <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -57,16 +98,31 @@ export default function LoginPage({ onLogin }) {
               Contraseña
             </label>
             <input
-              id="password"
+              id="contraseña"
               type="password"
               placeholder="Ingrese contraseña"
               className="form-input"
+              value={formData.contraseña}
+              onChange={handleChange}
+              required
+              disabled={loading}
             />
           </div>
 
+          {/* Mensaje de error */}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
           {/* Login Button */}
-          <button type="submit" className="login-button">
-            Ingresar
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
 
           {/* Forgot Password Link */}

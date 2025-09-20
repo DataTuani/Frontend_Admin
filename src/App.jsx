@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,16 +16,38 @@ import ArchivosPage from "./components/Archivos";
 import SeguimientoPage from "./components/Seguimiento";
 import ConfiguracionPage from "./components/Configuracion";
 import TeleconsultasList from "./components/TeleconsultasList";
+import { authService } from "./services/auth";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    authService.isAuthenticated()
+  );
 
-  const handleLogin = () => {
+  // Efecto para verificar autenticación al cargar y escuchar cambios
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(authService.isAuthenticated());
+    };
+    
+    checkAuth();
+    
+    // Escuchar el evento personalizado de cambio de autenticación
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
+  const handleLogin = (userData) => {
+    console.log("Usuario logueado: ", userData);
     setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
   };
 
   return (
@@ -47,9 +69,13 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <DashboardPage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <DashboardPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
@@ -57,9 +83,13 @@ function App() {
           <Route
             path="/consulta/:patient"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <ConsultaPage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <ConsultaPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
@@ -67,9 +97,13 @@ function App() {
           <Route
             path="/teleconsultas"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <TeleconsultasList />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <TeleconsultasList />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
 
@@ -77,45 +111,65 @@ function App() {
           <Route
             path="/teleconsulta/:patient"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <TeleConsulta />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <TeleConsulta />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
           <Route
             path="/expediente"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <ExpedientePage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <ExpedientePage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
           <Route
             path="/archivos"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <ArchivosPage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <ArchivosPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
           <Route
             path="/seguimiento"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <SeguimientoPage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <SeguimientoPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
           <Route
             path="/configuracion"
             element={
-              <Layout isAuthenticated={isAuthenticated}>
-                <ConfiguracionPage />
-              </Layout>
+              isAuthenticated ? (
+                <Layout isAuthenticated={isAuthenticated}>
+                  <ConfiguracionPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           
