@@ -29,11 +29,11 @@ SINAES-WEB/
 │   ├── pages/             # Páginas principales (Dashboard, Citas, Expedientes, etc.)
 │   ├── routes/            # Definición de rutas con React Router
 │   ├── utils/             # Funciones y helpers reutilizables
-│   └── main.tsx           # Punto de entrada de la aplicación
+│   └── main.jsx           # Punto de entrada de la aplicación
 ├── index.html             # HTML principal
 ├── package.json           # Dependencias del proyecto
-├── tsconfig.json          # Configuración TypeScript
-└── vite.config.ts         # Configuración de Vite
+├── tsconfig.json          # Configuración JavaScript
+└── vite.config.js         # Configuración de Vite
 
 ```
 
