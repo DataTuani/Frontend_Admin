@@ -907,6 +907,49 @@
   margin: 0;
 }
 
+.pdf-consultation-details {
+    margin-bottom: 20px;
+}
+
+.pdf-detail-section {
+    margin-bottom: 15px;
+}
+
+.pdf-detail-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.pdf-detail-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #555;
+}
+
+.pdf-medications-list, .pdf-orders-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pdf-medication-item, .pdf-order-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mejoras en el formulario de cita */
+.appointment-form .form-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
 .pdf-divider {
   height: 1px;
   background-color: #e5e7eb;

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import './Consulta.css';
 import Sidebar from './Sidebar';
 import { expedienteService } from '../services/expedienteService';
+import { citasService } from '../services/citas';
 import { authService } from '../services/auth';
 
 export default function ConsultationPage() {
     const { patient } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const { cita, pacienteNombre, userId, pacienteId } = location.state || {};
     
     // State para el expediente
@@ -15,10 +17,16 @@ export default function ConsultationPage() {
     const [loadingExpediente, setLoadingExpediente] = useState(true);
     const [errorExpediente, setErrorExpediente] = useState('');
 
+    // States para los datos de la consulta
+    const [sintomas, setSintomas] = useState('');
+    const [diagnostico, setDiagnostico] = useState('');
+    const [tratamiento, setTratamiento] = useState('');
+
     // State for medications
     const [medications, setMedications] = useState([]);
     const [showMedicationForm, setShowMedicationForm] = useState(false);
     const [showPdfSummary, setShowPdfSummary] = useState(false);
+    const [consultaGuardada, setConsultaGuardada] = useState(null);
     const [medicationForm, setMedicationForm] = useState({
         medicamento: "",
         dosis: "",
@@ -27,14 +35,22 @@ export default function ConsultationPage() {
         instrucciones: "",
     });
 
+     // States de carga separados
+    const [loadingCita, setLoadingCita] = useState(false);
+    const [loadingConsulta, setLoadingConsulta] = useState(false);
+
+    const [message, setMessage] = useState({ type: '', text: '' });
+
+
+
+
     // Cargar expediente al montar el componente
-    useEffect(() => {
+     useEffect(() => {
         const fetchExpediente = async () => {
             try {
                 setLoadingExpediente(true);
                 setErrorExpediente('');
                 
-                // El parámetro 'patient' contiene el ID del usuario
                 const userIdToFetch = patient || userId;
                 
                 if (!userIdToFetch) {
@@ -71,15 +87,13 @@ export default function ConsultationPage() {
         }
     }, [patient, userId]);
 
-    // Datos del paciente (usando el expediente real o datos de la cita como fallback)
+    // Datos del paciente
     const getPatientData = () => {
-        // Si tenemos expediente, usamos esos datos
         if (expediente && expediente.paciente) {
             const usuario = expediente.paciente.usuario;
             const alergias = expediente.paciente.alergias?.map(a => a.descripcion) || ['No registradas'];
             const enfermedades = expediente.paciente.enfermedades?.map(e => e.descripcion) || ['No registradas'];
             
-            // Obtener medicamentos de la última consulta
             const ultimaCita = expediente.paciente.citas?.find(c => c.consulta?.receta) || null;
             const medicamentosActuales = ultimaCita?.consulta?.receta?.map(r => `${r.nombre} ${r.dosis}`) || ['No registrados'];
 
@@ -95,11 +109,11 @@ export default function ConsultationPage() {
                 currentDiagnosis: enfermedades,
                 grupoSanguineo: expediente.paciente.grupo_sanguineo || 'No registrado',
                 fechaNacimiento: usuario.fecha_nacimiento ? 
-                    new Date(usuario.fecha_nacimiento).toLocaleDateString('es-ES') : 'No registrada'
+                    new Date(usuario.fecha_nacimiento).toLocaleDateString('es-ES') : 'No registrada',
+                pacienteId: expediente.paciente.id
             };
         }
         
-        // Si no hay expediente, usamos datos de la cita
         if (cita) {
             return {
                 name: pacienteNombre || 'Paciente',
@@ -111,11 +125,11 @@ export default function ConsultationPage() {
                 currentMedications: ['No registrados'],
                 currentDiagnosis: ['No registrado'],
                 grupoSanguineo: 'No registrado',
-                fechaNacimiento: 'No registrada'
+                fechaNacimiento: 'No registrada',
+                pacienteId: cita.paciente?.id
             };
         }
         
-        // Datos por defecto
         return {
             name: 'Paciente',
             age: 'Edad no disponible',
@@ -126,11 +140,11 @@ export default function ConsultationPage() {
             currentMedications: ['No registrados'],
             currentDiagnosis: ['No registrado'],
             grupoSanguineo: 'No registrado',
-            fechaNacimiento: 'No registrada'
+            fechaNacimiento: 'No registrada',
+            pacienteId: null
         };
     };
 
-    // Función para calcular la edad desde la fecha de nacimiento
     const calcularEdad = (fechaNacimiento) => {
         const nacimiento = new Date(fechaNacimiento);
         const hoy = new Date();
@@ -155,7 +169,8 @@ export default function ConsultationPage() {
     const [nextAppointment, setNextAppointment] = useState({
         fecha: "",
         hora: "",
-        tipo: "Presencial",
+        tipo: "3", // 3 para Seguimiento presencial, 4 para Seguimiento virtual
+        motivo_consulta: ""
     });
     
     // State for lab orders
@@ -165,6 +180,15 @@ export default function ConsultationPage() {
         estudio: "",
         indicaciones: "",
     });
+
+    // Mostrar mensaje temporal
+    const showMessage = (type, text) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+    };
+
+    // State for loading
+    const [loading, setLoading] = useState(false);
 
     const handleAddMedication = () => {
         if (medicationForm.medicamento.trim()) {
@@ -219,17 +243,169 @@ export default function ConsultationPage() {
         setShowLabOrderForm(false);
     };
     
-    const handleScheduleAppointment = () => {
-        if (nextAppointment.fecha) {
-            alert(`Cita programada para el ${nextAppointment.fecha} a las ${nextAppointment.hora || '--:--'} (${nextAppointment.tipo})`);
-        } else {
-            alert("Por favor, selecciona una fecha para la cita");
+    // Función para programar nueva cita
+     // Función separada para programar cita (cuando el doctor hace click en "Programar Cita")
+const handleScheduleAppointment = async () => {
+    try {
+        if (!nextAppointment.fecha) {
+            showMessage('error', "Por favor, selecciona una fecha para la cita");
+            return;
         }
-    };
 
-    const handleSaveConsultation = () => {
+        if (!nextAppointment.motivo_consulta.trim()) {
+            showMessage('error', "Por favor, ingresa el motivo de la consulta");
+            return;
+        }
+
+        const hospitalId = authService.getHospitalId();
+        if (!hospitalId) {
+            throw new Error('No se pudo obtener el ID del hospital');
+        }
+
+        if (!patientData.pacienteId) {
+            throw new Error('No se pudo obtener el ID del paciente');
+        }
+
+        // Combinar fecha y hora
+        const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
+        
+        // Validar que la fecha no sea en el pasado
+        if (fechaHora < new Date()) {
+            showMessage('error', "No se pueden agendar citas en fechas pasadas");
+            return;
+        }
+
+        const fechaHoraISO = fechaHora.toISOString();
+
+        const citaData = {
+            paciente_id: patientData.pacienteId,
+            hospital_id: parseInt(hospitalId),
+            fecha_hora: fechaHoraISO,
+            motivo_consulta: nextAppointment.motivo_consulta,
+            tipoCita: parseInt(nextAppointment.tipo)
+        };
+
+        setLoadingCita(true);
+        
+        const response = await citasService.createCita(citaData);
+        
+        showMessage('success', '✅ Cita programada exitosamente');
+        
+        // Limpiar formulario
+        setNextAppointment({
+            fecha: "",
+            hora: "",
+            tipo: "3",
+            motivo_consulta: ""
+        });
+
+    } catch (error) {
+        console.error('Error al programar cita:', error);
+        showMessage('error', `❌ ${error.message}`);
+    } finally {
+        setLoadingCita(false);
+    }
+};
+    // Función para guardar la consulta
+    // Función para guardar la consulta Y programar la próxima cita
+const handleSaveConsultation = async () => {
+    try {
+        if (!cita || !cita.id) {
+            throw new Error('No se encontró la cita a atender');
+        }
+
+        if (!sintomas.trim() || !diagnostico.trim() || !tratamiento.trim()) {
+            showMessage('error', "Por favor, complete todos los campos de la consulta (síntomas, diagnóstico y tratamiento)");
+            return;
+        }
+
+        const consultaData = {
+            sintomas: sintomas,
+            diagnostico: diagnostico,
+            tratamiento: tratamiento,
+            medicamentos: medications.map(med => ({
+                nombre: med.medicamento,
+                dosis: med.dosis,
+                frecuencia: med.frecuencia,
+                duracion: med.duracion,
+                instrucciones: med.instrucciones
+            })),
+            ordenes: labOrders.map(orden => ({
+                tipo_examen: orden.estudio,
+                instrucciones: orden.indicaciones
+            }))
+        };
+
+        setLoadingConsulta(true);
+        
+        // 1. Primero atender la cita actual
+        console.log('Atendiendo cita actual...');
+        const response = await citasService.atenderCita(cita.id, consultaData);
+        setConsultaGuardada(response);
+        console.log('Cita atendida exitosamente');
+
+        // 2. Si hay una próxima cita programada, crearla
+        let citaProgramada = false;
+        if (nextAppointment.fecha && nextAppointment.motivo_consulta.trim()) {
+            try {
+                console.log('Programando cita de seguimiento...');
+                const hospitalId = authService.getHospitalId();
+                if (!hospitalId) {
+                    throw new Error('No se pudo obtener el ID del hospital');
+                }
+
+                if (!patientData.pacienteId) {
+                    throw new Error('No se pudo obtener el ID del paciente');
+                }
+
+                // Combinar fecha y hora
+                const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
+                
+                // Validar que la fecha no sea en el pasado
+                if (fechaHora < new Date()) {
+                    showMessage('warning', "✅ Consulta guardada, pero no se pudo programar la cita: No se pueden agendar citas en fechas pasadas");
+                } else {
+                    const fechaHoraISO = fechaHora.toISOString();
+
+                    const citaData = {
+                        paciente_id: patientData.pacienteId,
+                        hospital_id: parseInt(hospitalId),
+                        fecha_hora: fechaHoraISO,
+                        motivo_consulta: nextAppointment.motivo_consulta,
+                        tipoCita: parseInt(nextAppointment.tipo)
+                    };
+
+                    // Programar la nueva cita
+                    await citasService.createCita(citaData);
+                    citaProgramada = true;
+                    console.log('Cita de seguimiento programada exitosamente');
+                }
+                
+            } catch (error) {
+                console.error('Error al programar cita de seguimiento:', error);
+                // Mostrar mensaje de error pero NO impedir que se muestre el resumen
+                showMessage('warning', `✅ Consulta guardada, pero error al programar cita de seguimiento: ${error.message}`);
+            }
+        }
+
+        // Mostrar mensaje final
+        if (citaProgramada) {
+            showMessage('success', '✅ Consulta guardada y cita de seguimiento programada exitosamente');
+        } else {
+            showMessage('success', '✅ Consulta guardada exitosamente');
+        }
+
+        // 3. Mostrar el resumen PDF (SIEMPRE se debe mostrar, incluso si hay error en la cita)
+        console.log('Mostrando resumen PDF...');
         setShowPdfSummary(true);
-    };
+
+    } catch (error) {
+        console.error('Error al guardar la consulta:', error);
+        showMessage('error', '❌ Error al guardar la consulta: ' + error.message);
+    } finally {
+        setLoadingConsulta(false);
+    }
+};
 
     const handlePrintPdf = () => {
         setShowPdfSummary(true);
@@ -272,6 +448,15 @@ export default function ConsultationPage() {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    // Datos para el PDF (usar datos de la consulta guardada si están disponibles)
+    const pdfData = consultaGuardada || {
+        sintomas: sintomas,
+        diagnostico: diagnostico,
+        tratamiento: tratamiento,
+        medicamentos: medications,
+        ordenes: labOrders
+    };
+
     // Mostrar loading mientras se carga el expediente
     if (loadingExpediente) {
         return (
@@ -298,12 +483,14 @@ export default function ConsultationPage() {
 
     return (
         <div className="dashboard-container">
-            {/* Sidebar estático */}
             <Sidebar />
-
-            {/* Main Content */}
             <div className="dashboard-main">
-                {/* Header estático */}
+              {/* Mensajes de alerta */}
+                {message.text && (
+                    <div className={`alert-message ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+                        {message.text}
+                    </div>
+                )}
                 <header className="header">
                     <div className="header-content">
                         <div className="header-left">
@@ -433,11 +620,13 @@ export default function ConsultationPage() {
                             <div className="card-content">
                                 {/* Patient Evolution */}
                                 <div className="form-section">
-                                    <h4 className="form-section-title">Evolución del paciente</h4>
+                                    <h4 className="form-section-title">Evolución del paciente (Síntomas)</h4>
                                     <textarea
                                         placeholder="Describe la evolución y síntomas actuales del paciente..."
                                         className="consultation-textarea"
                                         rows={3}
+                                        value={sintomas}
+                                        onChange={(e) => setSintomas(e.target.value)}
                                     />
                                 </div>
 
@@ -448,16 +637,20 @@ export default function ConsultationPage() {
                                         type="text" 
                                         placeholder="Diagnóstico principal" 
                                         className="consultation-input"
+                                        value={diagnostico}
+                                        onChange={(e) => setDiagnostico(e.target.value)}
                                     />
                                 </div>
 
                                 {/* Management Plan */}
                                 <div className="form-section">
-                                    <h4 className="form-section-title">Plan de manejo</h4>
+                                    <h4 className="form-section-title">Plan de manejo (Tratamiento)</h4>
                                     <textarea
                                         placeholder="Describe el plan de tratamientos y recomendaciones."
                                         className="consultation-textarea"
                                         rows={3}
+                                        value={tratamiento}
+                                        onChange={(e) => setTratamiento(e.target.value)}
                                     />
                                 </div>
 
@@ -715,8 +908,9 @@ export default function ConsultationPage() {
                                     <button 
                                         className="add-medication-btn"
                                         onClick={handleScheduleAppointment}
+                                        disabled={loadingCita}
                                     >
-                                        Programar Cita
+                                        {loadingCita ? 'Programando...' : 'Programar Cita'}
                                     </button>
                                 </div>
                             </div>
@@ -752,9 +946,20 @@ export default function ConsultationPage() {
                                             value={nextAppointment.tipo}
                                             onChange={(e) => setNextAppointment({...nextAppointment, tipo: e.target.value})}
                                         >
-                                            <option value="Presencial">Presencial</option>
-                                            <option value="Virtual">Virtual</option>
+                                            <option value="3">Seguimiento presencial</option>
+                                            <option value="4">Seguimiento virtual</option>
                                         </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="motivo-consulta" className="form-label">Motivo de la consulta</label>
+                                        <textarea
+                                            id="motivo-consulta"
+                                            className="form-textarea"
+                                            value={nextAppointment.motivo_consulta}
+                                            onChange={(e) => setNextAppointment({...nextAppointment, motivo_consulta: e.target.value})}
+                                            placeholder="Motivo de la consulta"
+                                            rows={3}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -765,8 +970,12 @@ export default function ConsultationPage() {
                             <Link to="/dashboard" className="cancel-action-btn">
                                 Cancelar
                             </Link>
-                            <button className="save-consultation-btn" onClick={handleSaveConsultation}>
-                                Guardar Consulta
+                            <button 
+                                className="save-consultation-btn" 
+                                onClick={handleSaveConsultation}
+                                disabled={loadingConsulta}
+                            >
+                                {loadingConsulta  ? '⏳ Guardando...' : '💾 Guardar Consulta'}
                             </button>
                         </div>
                     </div>
@@ -784,7 +993,7 @@ export default function ConsultationPage() {
                 <div className="pdf-modal-overlay">
                     <div className="pdf-modal-content">
                         <div className="pdf-header">
-                            <h1 className="pdf-title">Resumen de consulta-{patientData.name}</h1>
+                            <h1 className="pdf-title">Resumen de consulta - {patientData.name}</h1>
                             <button 
                                 className="pdf-close-btn"
                                 onClick={() => setShowPdfSummary(false)}
@@ -833,6 +1042,58 @@ export default function ConsultationPage() {
 
                             <div className="pdf-divider"></div>
 
+                            {/* Síntomas y Diagnóstico */}
+                            <div className="pdf-consultation-details">
+                                <h3 className="pdf-section-title">Resumen de la Consulta</h3>
+                                <div className="pdf-detail-section">
+                                    <h4 className="pdf-detail-subtitle">Síntomas Reportados</h4>
+                                    <p className="pdf-detail-text">{pdfData.sintomas || 'No especificado'}</p>
+                                </div>
+                                <div className="pdf-detail-section">
+                                    <h4 className="pdf-detail-subtitle">Diagnóstico</h4>
+                                    <p className="pdf-detail-text">{pdfData.diagnostico || 'No especificado'}</p>
+                                </div>
+                                <div className="pdf-detail-section">
+                                    <h4 className="pdf-detail-subtitle">Tratamiento Indicado</h4>
+                                    <p className="pdf-detail-text">{pdfData.tratamiento || 'No especificado'}</p>
+                                </div>
+                            </div>
+
+                            {pdfData.medicamentos && pdfData.medicamentos.length > 0 && (
+                                <>
+                                    <div className="pdf-divider"></div>
+                                    <div className="pdf-medications">
+                                        <h3 className="pdf-section-title">Medicamentos Recetados</h3>
+                                        <ul className="pdf-medications-list">
+                                            {pdfData.medicamentos.map((med, index) => (
+                                                <li key={index} className="pdf-medication-item">
+                                                    <strong>{med.nombre}</strong> - {med.dosis}, {med.frecuencia} durante {med.duracion}
+                                                    {med.instrucciones && ` (${med.instrucciones})`}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
+
+                            {pdfData.ordenes && pdfData.ordenes.length > 0 && (
+                                <>
+                                    <div className="pdf-divider"></div>
+                                    <div className="pdf-lab-orders">
+                                        <h3 className="pdf-section-title">Órdenes de Laboratorio</h3>
+                                        <ul className="pdf-orders-list">
+                                            {pdfData.ordenes.map((orden, index) => (
+                                                <li key={index} className="pdf-order-item">
+                                                    <strong>{orden.tipo_examen}</strong> - {orden.instrucciones}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="pdf-divider"></div>
+
                             <div className="pdf-recommendations">
                                 <h3 className="pdf-section-title">Recomendaciones Generales</h3>
                                 <ul className="pdf-recommendations-list">
@@ -857,8 +1118,11 @@ export default function ConsultationPage() {
                         </div>
 
                         <div className="pdf-action-buttons">
-                            <button className="pdf-action-btn pdf-cancel-btn" onClick={() => setShowPdfSummary(false)}>
-                                Cerrar
+                            <button className="pdf-action-btn pdf-cancel-btn" onClick={() => {
+                                setShowPdfSummary(false);
+                                navigate('/dashboard');
+                            }}>
+                                Cerrar y Volver al Dashboard
                             </button>
                             <button className="pdf-action-btn pdf-print-btn" onClick={handlePrintPdf}>
                                 Imprimir Resumen

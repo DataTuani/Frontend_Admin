@@ -26,6 +26,8 @@ export default function MainContent() {
     console.log('Token: ', authService.getToken());
     console.log('User ID: ', authService.getUserId());
     console.log('Authenticated: ', authService.isAuthenticated());
+    console.log('User Data: ', authService.getUser());
+    console.log('Hospital ID: ', localStorage.getItem('hospitalId'));
 
     const fetchCitas = async () => {
       try {

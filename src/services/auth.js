@@ -14,6 +14,11 @@ export const authService = {
                 localStorage.setItem('userData', JSON.stringify(response.data.usuario));
                 localStorage.setItem('userId', response.data.usuario.id);
                 
+                // Guardar hospital_id si está disponible
+                if (response.data.usuario.Personal && response.data.usuario.Personal.hospital) {
+                    localStorage.setItem('hospitalId', response.data.usuario.Personal.hospital.id);
+                }
+                
                 // Configurar el token en los headers
                 api.defaults.headers.common['x-token'] = response.data.token;
                 
@@ -35,6 +40,7 @@ export const authService = {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
         localStorage.removeItem('userId');
+        localStorage.removeItem('hospitalId');
         delete api.defaults.headers.common['x-token'];
         
         window.dispatchEvent(new CustomEvent('authChange', { 
@@ -55,6 +61,10 @@ export const authService = {
     
     getUserId: () => {
         return localStorage.getItem('userId');
+    },
+    
+    getHospitalId: () => {
+        return localStorage.getItem('hospitalId');
     },
     
     isAuthenticated: () => {
