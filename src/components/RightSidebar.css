@@ -3,6 +3,24 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: sticky;
+  top: 1.5rem; /* Ajusta este valor según el espacio que quieras desde la parte superior */
+  align-self: flex-start;
+  max-height: calc(100vh - 2rem); /* Ajusta según necesites */
+  overflow-y: auto;
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+  background-color: #f9fafb;
 }
 
 .card-title {
@@ -16,9 +34,13 @@
 }
 
 .card-title-icon {
-  width: 1.1rem;  /* Reducido de 1.25rem */
-  height: 1.1rem; /* Reducido de 1.25rem */
+  width: 1.1rem;
+  height: 1.1rem;
   color: #3b82f6;
+}
+
+.card-content {
+  padding: 1.25rem;
 }
 
 .summary-list {
@@ -46,5 +68,6 @@
 @media (max-width: 1024px) {
   .right-sidebar {
     width: 100%;
+    position: static; /* En móviles, vuelve a su posición normal */
   }
 }

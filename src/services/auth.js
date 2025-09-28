@@ -1,3 +1,4 @@
+// src/services/auth.js
 import api from "./api";
 
 export const authService = {
@@ -11,9 +12,11 @@ export const authService = {
             if (response.data.token) {
                 localStorage.setItem('authToken', response.data.token);
                 localStorage.setItem('userData', JSON.stringify(response.data.usuario));
-                api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+                localStorage.setItem('userId', response.data.usuario.id);
                 
-                // Disparar evento personalizado para notificar el login
+                // Configurar el token en los headers
+                api.defaults.headers.common['x-token'] = response.data.token;
+                
                 window.dispatchEvent(new CustomEvent('authChange', { 
                     detail: { authenticated: true } 
                 }));
@@ -31,14 +34,13 @@ export const authService = {
     logout: () => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
-        delete api.defaults.headers.common['Authorization'];
+        localStorage.removeItem('userId');
+        delete api.defaults.headers.common['x-token'];
         
-        // Disparar evento personalizado para notificar el logout
         window.dispatchEvent(new CustomEvent('authChange', { 
             detail: { authenticated: false } 
         }));
         
-        // Forzar recarga para asegurar que todos los componentes se actualicen
         window.location.href = '/login';
     },
     
@@ -49,6 +51,10 @@ export const authService = {
     getUser: () => {
         const userData = localStorage.getItem('userData');
         return userData ? JSON.parse(userData) : null;
+    },
+    
+    getUserId: () => {
+        return localStorage.getItem('userId');
     },
     
     isAuthenticated: () => {

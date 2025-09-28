@@ -147,6 +147,7 @@ function App() {
             }
           />
           
+          {/* Ruta de seguimiento - IMPORTANTE: Ya está incluida en tu App.jsx */}
           <Route
             path="/seguimiento"
             element={
