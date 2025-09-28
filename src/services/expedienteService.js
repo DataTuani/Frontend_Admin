@@ -1,6 +1,23 @@
 import api from './api';
 
 export const expedienteService = {
+  getAllExpedientes: async () => {
+      try {
+        const response = await api.get('/api/expediente/todos');
+        return response.data;
+      } catch (error) {
+        console.error('Error en getAllExpedientes:', error);
+        
+        if (error.response?.status === 401) {
+          throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+        }
+        
+        const errorMessage = error.response?.data?.message || 
+                            error.response?.data?.error ||
+                            'Error al obtener expedientes';
+        throw new Error(errorMessage);
+      }
+    },
   // Obtener expediente por ID de usuario
   getExpedienteByUserId: async (userId) => {
     try {

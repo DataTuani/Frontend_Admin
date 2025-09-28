@@ -1,139 +1,165 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
+import { expedienteService } from '../services/expedienteService';
 import './Expediente.css';
 
 export default function ExpedientePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState("María González")
-  const [activeView, setActiveView] = useState("info")
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [activeView, setActiveView] = useState("info");
+  const [expedientes, setExpedientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const patients = [
-    {
-      id: 1,
-      name: "María González",
-      age: "45 años",
-      initials: "MG",
-      color: "patient-pink",
-    },
-    {
-      id: 2,
-      name: "Carlos Rodriguez",
-      age: "38 años",
-      initials: "CR",
-      color: "patient-blue",
-    },
-    {
-      id: 3,
-      name: "Ana Martinez",
-      age: "29 años",
-      initials: "AM",
-      color: "patient-purple",
-    },
-  ]
+  // Estados para paginacion
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const patientData = {
-    "María González": {
+  // Cargar expedientes al montar el componente
+   // Cargar expedientes al montar el componente
+  useEffect(() => {
+    const fetchExpedientes = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await expedienteService.getAllExpedientes();
+        
+        if (response.success && response.Expedientes) {
+          setExpedientes(response.Expedientes);
+          // Seleccionar el primer paciente por defecto
+          if (response.Expedientes.length > 0) {
+            setSelectedPatient(response.Expedientes[0]);
+          }
+        } else {
+          throw new Error('No se pudieron cargar los expedientes');
+        }
+      } catch (error) {
+        console.error('Error cargando expedientes:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExpedientes();
+  }, []);
+
+   // Calcular pacientes para la página actual
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPatients = expedientes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(expedientes.length / itemsPerPage);
+
+  // Función para cambiar página
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Función para cambiar items por página
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Volver a la primera página
+  };
+
+  // Función para calcular la edad a partir de la fecha de nacimiento
+  const calcularEdad = (fechaNacimiento) => {
+    if (!fechaNacimiento) return 'Edad no disponible';
+    
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    
+    return `${edad} años`;
+  };
+
+  // Generar iniciales del nombre
+  const generarIniciales = (usuario) => {
+    if (!usuario) return 'P';
+    const primerNombre = usuario.primer_nombre || '';
+    const primerApellido = usuario.primer_apellido || '';
+    return (primerNombre[0] + primerApellido[0]).toUpperCase() || 'P';
+  };
+
+  // Colores para los avatares
+  const colores = ['patient-pink', 'patient-blue', 'patient-purple'];
+
+  // Obtener datos del paciente seleccionado
+  const getPatientData = (expediente) => {
+    if (!expediente || !expediente.paciente) return null;
+
+    const usuario = expediente.paciente.usuario;
+    const alergias = expediente.paciente.alergias?.map(a => a.descripcion) || ['No registradas'];
+    const enfermedades = expediente.paciente.enfermedades?.map(e => e.descripcion) || ['No registradas'];
+    
+    // Obtener medicamentos de la última consulta con receta
+    const ultimaCita = expediente.paciente.citas?.find(c => c.consulta?.receta) || null;
+    const medicamentos = ultimaCita?.consulta?.receta?.map(r => `${r.nombre} ${r.dosis}`) || ['No registrados'];
+
+    // Prescripciones (recetas) de las consultas
+    const prescriptions = expediente.paciente.citas
+      ?.filter(c => c.consulta?.receta)
+      .map(c => {
+        const receta = c.consulta.receta[0]; // Tomamos la primera receta de la consulta
+        return {
+          medication: receta.nombre,
+          frequency: receta.frecuencia,
+          date: new Date(c.fecha_hora).toLocaleDateString('es-ES'),
+          status: 'ACTIVA'
+        };
+      }) || [];
+
+    // Historial de citas
+    const history = expediente.paciente.citas?.map(cita => {
+      let tipo = cita.tipo.tipo;
+      let color = 'badge-blue';
+      if (tipo.includes('Virtual')) color = 'badge-green';
+      if (cita.estado.nombre === 'Cancelado') color = 'badge-red';
+
+      return {
+        date: new Date(cita.fecha_hora).toLocaleDateString('es-ES'),
+        type: cita.tipo.tipo,
+        description: cita.motivo_consulta,
+        doctor: `Dr. ${cita.medico.usuario.primer_nombre} ${cita.medico.usuario.primer_apellido}`,
+        color: color
+      };
+    }) || [];
+
+    return {
       personalData: {
-        nombre: "María González",
-        edad: "45 años",
-        genero: "Femenino",
-        telefono: "+52 55 1234 5678",
-        email: "maria.gonzalez@example.com",
+        nombre: `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.trim(),
+        edad: calcularEdad(usuario.fecha_nacimiento),
+        genero: usuario.genero === 'M' ? 'Masculino' : 'Femenino',
+        telefono: usuario.telefono || 'No registrado',
+        email: usuario.correo || 'No registrado',
+        cedula: usuario.cedula || 'No registrada',
+        direccion: usuario.direccion || 'No registrada',
+        fechaNacimiento: usuario.fecha_nacimiento ? new Date(usuario.fecha_nacimiento).toLocaleDateString('es-ES') : 'No registrada'
       },
       medicalInfo: {
-        tipoSangre: "O+",
-        alergias: "Penicilina, Mariscos",
-        condiciones: "Diabetes tipo 2, Hipertensión arterial",
+        tipoSangre: expediente.paciente.grupo_sanguineo || 'No registrado',
+        alergias: alergias,
+        condiciones: enfermedades,
       },
-      medications: ["Metformina 500mg", "Losartán 50mg"],
-      prescriptions: [
-        {
-          medication: "Metformina 500mg",
-          frequency: "1 tableta cada 12 horas",
-          date: "23/11/2024",
-          status: "ACTIVA",
-        },
-      ],
-      history: [
-        {
-          date: "10/11/2024",
-          type: "Consulta",
-          description: "Chequeo general",
-          doctor: "Dr. Juan Pérez",
-          color: "badge-blue",
-        },
-        {
-          date: "05/11/2024",
-          type: "Laboratorio",
-          description: "Análisis de sangre",
-          doctor: "Dr. Laura García",
-          color: "badge-green",
-        },
-        {
-          date: "01/11/2024",
-          type: "Emergencia",
-          description: "Dolor de pecho",
-          doctor: "Dr. Carlos Ruiz",
-          color: "badge-red",
-        },
-      ],
-    },
-    "Carlos Rodriguez": {
-      personalData: {
-        nombre: "Carlos Rodriguez",
-        edad: "38 años",
-        genero: "Masculino",
-        telefono: "+52 55 9876 5432",
-        email: "carlos.rodriguez@example.com",
-      },
-      medicalInfo: {
-        tipoSangre: "A+",
-        alergias: "Ninguna conocida",
-        condiciones: "Hipertensión",
-      },
-      medications: ["Enalapril 10mg"],
-      prescriptions: [],
-      history: [
-        {
-          date: "08/11/2024",
-          type: "Consulta",
-          description: "Control de presión",
-          doctor: "Dr. Ana López",
-          color: "badge-blue",
-        },
-      ],
-    },
-    "Ana Martinez": {
-      personalData: {
-        nombre: "Ana Martinez",
-        edad: "29 años",
-        genero: "Femenino",
-        telefono: "+52 55 5555 1234",
-        email: "ana.martinez@example.com",
-      },
-      medicalInfo: {
-        tipoSangre: "B+",
-        alergias: "Aspirina",
-        condiciones: "Migraña crónica",
-      },
-      medications: ["Sumatriptán 50mg"],
-      prescriptions: [],
-      history: [
-        {
-          date: "12/11/2024",
-          type: "Consulta",
-          description: "Seguimiento migraña",
-          doctor: "Dr. Pedro Sánchez",
-          color: "badge-blue",
-        },
-      ],
-    },
-  }
+      medications: medicamentos,
+      prescriptions: prescriptions,
+      history: history,
+      expedienteInfo: {
+        folio: expediente.folio,
+        fechaApertura: new Date(expediente.fecha_apertura).toLocaleDateString('es-ES'),
+        hospital: expediente.hospital?.nombre || 'No especificado'
+      }
+    };
+  };
 
-  const currentPatient = patientData[selectedPatient] || patientData["María González"]
+  const currentPatientData = selectedPatient ? getPatientData(selectedPatient) : null;
 
   const menuItems = [
     {
@@ -208,6 +234,18 @@ export default function ExpedientePage() {
     authService.logout();
     navigate('/login');
   };
+
+  if (loading) {
+    return (
+      <div className="expediente-container">
+        <div className="expediente-main">
+          <div className="loading-container">
+            <div className="loading">Cargando expedientes...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`expediente-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -286,231 +324,300 @@ export default function ExpedientePage() {
 
         {/* Content Area */}
         <div className="expediente-content">
+          {error && (
+            <div className="error-banner">
+              <span>⚠️ Error al cargar expedientes: {error}</span>
+            </div>
+          )}
+
           <div className="content-layout">
             {/* Patient List Sidebar */}
             <div className="patients-sidebar">
               <div className="patients-card">
                 <div className="card-header">
-                  <h2 className="card-title">Pacientes</h2>
+                  <h2 className="card-title">Pacientes ({expedientes.length})</h2>
                 </div>
                 <div className="card-content">
                   <div className="patients-list">
-                    {patients.map((patient) => (
-                      <div
-                        key={patient.id}
-                        onClick={() => setSelectedPatient(patient.name)}
-                        className={`patient-item ${selectedPatient === patient.name ? 'patient-selected' : ''}`}
-                      >
-                        <div className={`patient-avatar ${patient.color}`}>
-                          <span className="patient-initials">{patient.initials}</span>
+                    {currentPatients.map((expediente, index) => {
+                      const usuario = expediente.paciente?.usuario;
+                      if (!usuario) return null;
+                      
+                      const nombreCompleto = `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.trim();
+                      const edad = calcularEdad(usuario.fecha_nacimiento);
+                      const iniciales = generarIniciales(usuario);
+                      const colorIndex = index % colores.length;
+                      
+                      return (
+                        <div
+                          key={expediente.id}
+                          onClick={() => setSelectedPatient(expediente)}
+                          className={`patient-item ${selectedPatient?.id === expediente.id ? 'patient-selected' : ''}`}
+                        >
+                          <div className={`patient-avatar ${colores[colorIndex]}`}>
+                            <span className="patient-initials">{iniciales}</span>
+                          </div>
+                          <div className="patient-info">
+                            <div className="patient-name">{nombreCompleto || 'Paciente sin nombre'}</div>
+                            <div className="patient-age">{edad}</div>
+                            <div className="patient-folio">Folio: {expediente.folio}</div>
+                          </div>
                         </div>
-                        <div className="patient-info">
-                          <div className="patient-name">{patient.name}</div>
-                          <div className="patient-age">{patient.age}</div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="main-content-area">
-              {/* Patient Information */}
-              <div className="info-card">
-                <div className="card-header">
-                  <div className="card-title-row">
-                    <h2 className="card-title">
-                      <svg className="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                      Información del paciente
-                    </h2>
-                    <div className="view-buttons">
-                      <button
-                        className={`view-button ${activeView === "info" ? "view-active" : ""}`}
-                        onClick={() => setActiveView("info")}
-                      >
-                        Datos Personales
-                      </button>
-                      <button
-                        className={`view-button ${activeView === "prescriptions" ? "view-active" : ""}`}
-                        onClick={() => setActiveView("prescriptions")}
-                      >
-                        Información Médica
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-content">
-                  {activeView === "info" ? (
-                    <div className="tabs-container">
-                      <div className="tabs-header">
-                        <button className="tab-button tab-active">Datos Personales</button>
-                        <button className="tab-button">Información Médica</button>
+                  {/* Paginación */}
+                  {expedientes.length > 0 && (
+                    <div className="pagination-container">
+                      <div className="pagination-info">
+                        Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, expedientes.length)} de {expedientes.length} pacientes
                       </div>
-                      <div className="tab-content">
-                        <div className="personal-data">
-                          <div className="data-grid">
-                            <div className="data-field">
-                              <label className="field-label">Nombre:</label>
-                              <p className="field-value">{currentPatient.personalData.nombre}</p>
-                            </div>
-                            <div className="data-field">
-                              <label className="field-label">Edad:</label>
-                              <p className="field-value">{currentPatient.personalData.edad}</p>
-                            </div>
-                            <div className="data-field">
-                              <label className="field-label">Género:</label>
-                              <p className="field-value">{currentPatient.personalData.genero}</p>
-                            </div>
-                            <div className="data-field">
-                              <label className="field-label">Teléfono:</label>
-                              <p className="field-value">{currentPatient.personalData.telefono}</p>
-                            </div>
-                            <div className="data-field full-width">
-                              <label className="field-label">Email:</label>
-                              <p className="field-value">{currentPatient.personalData.email}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="medical-content">
-                      {/* Medications and Prescriptions */}
-                      <div className="medications-section">
-                        <h3 className="section-title">Medicamentos Actuales</h3>
-                        <div className="medications-grid">
-                          {currentPatient.medications.map((medication, index) => (
-                            <div key={index} className="medication-item">
-                              <p className="medication-name">{medication}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <h3 className="section-title">Recetas Electrónicas</h3>
-                        {currentPatient.prescriptions.length > 0 ? (
-                          <div className="prescriptions-list">
-                            {currentPatient.prescriptions.map((prescription, index) => (
-                              <div key={index} className="prescription-item">
-                                <div className="prescription-info">
-                                  <p className="prescription-medication">{prescription.medication}</p>
-                                  <p className="prescription-frequency">{prescription.frequency}</p>
-                                  <p className="prescription-date">Fecha: {prescription.date}</p>
-                                </div>
-                                <div className="prescription-actions">
-                                  <span className="prescription-status">{prescription.status}</span>
-                                  <button className="print-button">Imprimir</button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="no-prescriptions">No hay recetas electrónicas</p>
-                        )}
-
-                        <div className="new-prescription">
-                          <h4 className="new-prescription-title">Crear nueva receta</h4>
-                          <div className="prescription-form">
-                            <div className="form-grid">
-                              <input type="text" placeholder="Medicamento" className="form-input" />
-                              <input type="text" placeholder="Dosis" className="form-input" />
-                              <input type="text" placeholder="Frecuencia" className="form-input" />
-                              <input type="text" placeholder="Duración" className="form-input" />
-                            </div>
-                            <input type="text" placeholder="Instrucciones Especiales" className="form-input full-width" />
-                            <div className="form-buttons">
-                              <button className="primary-button">Guardar Receta</button>
-                              <button className="secondary-button">Guardar Borrador</button>
-                            </div>
-                          </div>
+                      
+                      <div className="pagination-controls">
+                        <select 
+                          className="page-size-select"
+                          value={itemsPerPage}
+                          onChange={handleItemsPerPageChange}
+                        >
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={25}>25</option>
+                          <option value={100}>100</option>
+                        </select>
+                        
+                        <div className="pagination-buttons">
+                          <button
+                            className="page-button"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                          >
+                            Anterior
+                          </button>
+                          
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNumber;
+                            if (totalPages <= 5) {
+                              pageNumber = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNumber = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNumber = totalPages - 4 + i;
+                            } else {
+                              pageNumber = currentPage - 2 + i;
+                            }
+                            
+                            return (
+                              <button
+                                key={pageNumber}
+                                className={`page-button ${currentPage === pageNumber ? 'page-button-active' : ''}`}
+                                onClick={() => handlePageChange(pageNumber)}
+                              >
+                                {pageNumber}
+                              </button>
+                            );
+                          })}
+                          
+                          <button
+                            className="page-button"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            Siguiente
+                          </button>
                         </div>
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
 
-              {/* Medical History */}
-              <div className="history-card">
-                <div className="card-header">
-                  <h2 className="card-title">Historial Médico</h2>
-                </div>
-                <div className="card-content">
-                  <div className="history-list">
-                    {currentPatient.history.map((entry, index) => (
-                      <div key={index} className="history-item">
-                        <div className="history-info">
-                          <div className="history-date">{entry.date}</div>
-                          <div className="history-details">
-                            <p className="history-description">{entry.description}</p>
-                            <p className="history-doctor">{entry.doctor}</p>
-                          </div>
-                        </div>
-                        <span className={`history-badge ${entry.color}`}>{entry.type}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents and Studies */}
-              <div className="documents-card">
-                <div className="card-header">
-                  <h2 className="card-title">
-                    <svg className="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    Documentos y Estudios
-                  </h2>
-                </div>
-                <div className="card-content">
-                  <div className="documents-grid">
-                    <div className="document-item">
-                      <svg className="document-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <div className="document-info">
-                        <p className="document-name">Análisis de sangre</p>
-                        <p className="document-date">23/11/2024</p>
-                      </div>
-                    </div>
-                    <div className="document-item">
-                      <svg className="document-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <div className="document-info">
-                        <p className="document-name">Radiografía de tórax</p>
-                        <p className="document-date">10/11/2024</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Main Content Area */}
+            <div className="main-content-area">
+              {currentPatientData ? (
+                <>
+                  {/* Patient Information */}
+                  <div className="info-card">
+                    <div className="card-header">
+                      <div className="card-title-row">
+                        <h2 className="card-title">
+                          <svg className="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                          Información del paciente
+                        </h2>
+                        <div className="view-buttons">
+                          <button
+                            className={`view-button ${activeView === "info" ? "view-active" : ""}`}
+                            onClick={() => setActiveView("info")}
+                          >
+                            Datos Personales
+                          </button>
+                          <button
+                            className={`view-button ${activeView === "prescriptions" ? "view-active" : ""}`}
+                            onClick={() => setActiveView("prescriptions")}
+                          >
+                            Información Médica
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-content">
+                      {activeView === "info" ? (
+                        <div className="tabs-container">
+                          <div className="tab-content">
+                            <div className="personal-data">
+                              <div className="data-grid">
+                                <div className="data-field">
+                                  <label className="field-label">Nombre completo:</label>
+                                  <p className="field-value">{currentPatientData.personalData.nombre}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Edad:</label>
+                                  <p className="field-value">{currentPatientData.personalData.edad}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Género:</label>
+                                  <p className="field-value">{currentPatientData.personalData.genero}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Teléfono:</label>
+                                  <p className="field-value">{currentPatientData.personalData.telefono}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Cédula:</label>
+                                  <p className="field-value">{currentPatientData.personalData.cedula}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Fecha de Nacimiento:</label>
+                                  <p className="field-value">{currentPatientData.personalData.fechaNacimiento}</p>
+                                </div>
+                                <div className="data-field full-width">
+                                  <label className="field-label">Dirección:</label>
+                                  <p className="field-value">{currentPatientData.personalData.direccion}</p>
+                                </div>
+                                <div className="data-field full-width">
+                                  <label className="field-label">Email:</label>
+                                  <p className="field-value">{currentPatientData.personalData.email}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Folio Expediente:</label>
+                                  <p className="field-value">{currentPatientData.expedienteInfo.folio}</p>
+                                </div>
+                                <div className="data-field">
+                                  <label className="field-label">Hospital:</label>
+                                  <p className="field-value">{currentPatientData.expedienteInfo.hospital}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="medical-content">
+                          {/* Medical Information */}
+                          <div className="medications-section">
+                            <h3 className="section-title">Información Médica General</h3>
+                            <div className="data-grid">
+                              <div className="data-field">
+                                <label className="field-label">Grupo Sanguíneo:</label>
+                                <p className="field-value">{currentPatientData.medicalInfo.tipoSangre}</p>
+                              </div>
+                              <div className="data-field full-width">
+                                <label className="field-label">Alergias:</label>
+                                <div className="allergies-list">
+                                  {currentPatientData.medicalInfo.alergias.map((alergia, index) => (
+                                    <span key={index} className="allergy-tag">{alergia}</span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="data-field full-width">
+                                <label className="field-label">Condiciones/Enfermedades:</label>
+                                <div className="conditions-list">
+                                  {currentPatientData.medicalInfo.condiciones.map((condicion, index) => (
+                                    <span key={index} className="condition-tag">{condicion}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <h3 className="section-title">Medicamentos Actuales</h3>
+                            <div className="medications-grid">
+                              {currentPatientData.medications.map((medication, index) => (
+                                <div key={index} className="medication-item">
+                                  <p className="medication-name">{medication}</p>
+                                </div>
+                              ))}
+                            </div>
+
+                            <h3 className="section-title">Recetas Electrónicas</h3>
+                            {currentPatientData.prescriptions.length > 0 ? (
+                              <div className="prescriptions-list">
+                                {currentPatientData.prescriptions.map((prescription, index) => (
+                                  <div key={index} className="prescription-item">
+                                    <div className="prescription-info">
+                                      <p className="prescription-medication">{prescription.medication}</p>
+                                      <p className="prescription-frequency">{prescription.frequency}</p>
+                                      <p className="prescription-date">Fecha: {prescription.date}</p>
+                                    </div>
+                                    <div className="prescription-actions">
+                                      <span className="prescription-status">{prescription.status}</span>
+                                      <button className="print-button">Imprimir</button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="no-prescriptions">No hay recetas electrónicas registradas</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Medical History */}
+                  <div className="history-card">
+                    <div className="card-header">
+                      <h2 className="card-title">Historial de Consultas</h2>
+                    </div>
+                    <div className="card-content">
+                      {currentPatientData.history.length > 0 ? (
+                        <div className="history-list">
+                          {currentPatientData.history.map((entry, index) => (
+                            <div key={index} className="history-item">
+                              <div className="history-info">
+                                <div className="history-date">{entry.date}</div>
+                                <div className="history-details">
+                                  <p className="history-description">{entry.description}</p>
+                                  <p className="history-doctor">{entry.doctor}</p>
+                                </div>
+                              </div>
+                              <span className={`history-badge ${entry.color}`}>{entry.type}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="no-history">No hay historial de consultas registrado</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="no-patient-selected">
+                  <p>Selecciona un paciente para ver su expediente</p>
+                </div>
+              )}
+            </div>
           </div>
+
+
         </div>
       </div>
     </div>
