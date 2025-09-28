@@ -50,16 +50,15 @@ export const citasService = {
         tipoCita: citaData.tipoCita
       };
 
-      console.log('Enviando datos de cita:', requestBody); // Para debug
+      console.log('Enviando datos de cita:', requestBody); 
       
       const response = await api.post('/api/citas', requestBody);
 
-      console.log('Respuesta de la API:', response.data); // Para debug
+      console.log('Respuesta de la API:', response.data); 
       return response.data;
     } catch (error) {
       console.error('Error en createCita:', error);
-      console.error('Detalles del error:', error.response?.data); // Para debug
-      
+      console.error('Detalles del error:', error.response?.data); 
       // Manejar errores específicos
       if (error.response?.status === 400) {
         const errorMessage = error.response?.data?.message || 'Error en los datos enviados';

@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import { expedienteService } from '../services/expedienteService';
 import { citasService } from '../services/citas';
 import { authService } from '../services/auth';
+import Alert from './Alerta';
 
 export default function ConsultationPage() {
     const { patient } = useParams();
@@ -38,6 +39,19 @@ export default function ConsultationPage() {
      // States de carga separados
     const [loadingCita, setLoadingCita] = useState(false);
     const [loadingConsulta, setLoadingConsulta] = useState(false);
+
+     // Nuevo estado para las alertas
+    const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
+    // Función para mostrar alertas
+    const showAlert = (type, message) => {
+        setAlert({ show: true, type, message });
+    };
+
+    // Función para cerrar alertas
+    const closeAlert = () => {
+        setAlert({ show: false, type: '', message: '' });
+    };
 
     const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -169,7 +183,7 @@ export default function ConsultationPage() {
     const [nextAppointment, setNextAppointment] = useState({
         fecha: "",
         hora: "",
-        tipo: "3", // 3 para Seguimiento presencial, 4 para Seguimiento virtual
+        tipo: "1", // 3 para Seguimiento presencial, 4 para Seguimiento virtual
         motivo_consulta: ""
     });
     
@@ -245,168 +259,177 @@ export default function ConsultationPage() {
     
     // Función para programar nueva cita
      // Función separada para programar cita (cuando el doctor hace click en "Programar Cita")
-const handleScheduleAppointment = async () => {
-    try {
-        if (!nextAppointment.fecha) {
-            showMessage('error', "Por favor, selecciona una fecha para la cita");
-            return;
+// Función para programar nueva cita - ACTUALIZADA
+    const handleScheduleAppointment = async () => {
+        console.log("INTENDANDO PROGRAMAR CITA: ", nextAppointment);
+        try {
+            if (!nextAppointment.fecha) {
+                console.log("Falta fecha");
+                showAlert('error', "Por favor, selecciona una fecha para la cita");
+                return;
+            }
+
+            if (!nextAppointment.motivo_consulta.trim()) {
+                console.log("Falta motivo");
+                showAlert('error', "Por favor, ingresa el motivo de la consulta");
+                return;
+            }
+
+            const hospitalId = authService.getHospitalId();
+            if (!hospitalId) {
+                console.error('No se pudo obtener el ID del hospital');
+                throw new Error('No se pudo obtener el ID del hospital');
+            }
+
+            if (!patientData.pacienteId) {
+                console.error('No se pudo obtener el ID del paciente');
+                throw new Error('No se pudo obtener el ID del paciente');
+            }
+
+            // Combinar fecha y hora
+            const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
+            
+            // Validar que la fecha no sea en el pasado
+            if (fechaHora < new Date()) {
+                console.log("Fecha en el pasado"); 
+                showAlert('error', "No se pueden agendar citas en fechas pasadas");
+                return;
+            }
+
+            const fechaHoraISO = fechaHora.toISOString();
+
+            const citaData = {
+                paciente_id: patientData.pacienteId,
+                hospital_id: parseInt(hospitalId),
+                fecha_hora: fechaHoraISO,
+                motivo_consulta: nextAppointment.motivo_consulta,
+                tipoCita: parseInt(nextAppointment.tipo)
+            };
+
+            setLoadingCita(true);
+            
+            console.log("Datos enviados para la cita:", citaData);
+            const response = await citasService.createCita(citaData);
+            console.log('Cita programada:', response);
+            
+            showAlert('success', '✅ Cita programada exitosamente');
+            
+            // Limpiar formulario
+            setNextAppointment({
+                fecha: "",
+                hora: "",
+                tipo: "3",
+                motivo_consulta: ""
+            });
+
+        } catch (error) {
+            console.error('Error al programar cita:', error);
+            showAlert('error', `❌ ${error.message}`);
+        } finally {
+            setLoadingCita(false);
         }
-
-        if (!nextAppointment.motivo_consulta.trim()) {
-            showMessage('error', "Por favor, ingresa el motivo de la consulta");
-            return;
-        }
-
-        const hospitalId = authService.getHospitalId();
-        if (!hospitalId) {
-            throw new Error('No se pudo obtener el ID del hospital');
-        }
-
-        if (!patientData.pacienteId) {
-            throw new Error('No se pudo obtener el ID del paciente');
-        }
-
-        // Combinar fecha y hora
-        const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
-        
-        // Validar que la fecha no sea en el pasado
-        if (fechaHora < new Date()) {
-            showMessage('error', "No se pueden agendar citas en fechas pasadas");
-            return;
-        }
-
-        const fechaHoraISO = fechaHora.toISOString();
-
-        const citaData = {
-            paciente_id: patientData.pacienteId,
-            hospital_id: parseInt(hospitalId),
-            fecha_hora: fechaHoraISO,
-            motivo_consulta: nextAppointment.motivo_consulta,
-            tipoCita: parseInt(nextAppointment.tipo)
-        };
-
-        setLoadingCita(true);
-        
-        const response = await citasService.createCita(citaData);
-        
-        showMessage('success', '✅ Cita programada exitosamente');
-        
-        // Limpiar formulario
-        setNextAppointment({
-            fecha: "",
-            hora: "",
-            tipo: "3",
-            motivo_consulta: ""
-        });
-
-    } catch (error) {
-        console.error('Error al programar cita:', error);
-        showMessage('error', `❌ ${error.message}`);
-    } finally {
-        setLoadingCita(false);
-    }
-};
+    };
     // Función para guardar la consulta
     // Función para guardar la consulta Y programar la próxima cita
+
 const handleSaveConsultation = async () => {
-    try {
-        if (!cita || !cita.id) {
-            throw new Error('No se encontró la cita a atender');
-        }
-
-        if (!sintomas.trim() || !diagnostico.trim() || !tratamiento.trim()) {
-            showMessage('error', "Por favor, complete todos los campos de la consulta (síntomas, diagnóstico y tratamiento)");
-            return;
-        }
-
-        const consultaData = {
-            sintomas: sintomas,
-            diagnostico: diagnostico,
-            tratamiento: tratamiento,
-            medicamentos: medications.map(med => ({
-                nombre: med.medicamento,
-                dosis: med.dosis,
-                frecuencia: med.frecuencia,
-                duracion: med.duracion,
-                instrucciones: med.instrucciones
-            })),
-            ordenes: labOrders.map(orden => ({
-                tipo_examen: orden.estudio,
-                instrucciones: orden.indicaciones
-            }))
-        };
-
-        setLoadingConsulta(true);
-        
-        // 1. Primero atender la cita actual
-        console.log('Atendiendo cita actual...');
-        const response = await citasService.atenderCita(cita.id, consultaData);
-        setConsultaGuardada(response);
-        console.log('Cita atendida exitosamente');
-
-        // 2. Si hay una próxima cita programada, crearla
-        let citaProgramada = false;
-        if (nextAppointment.fecha && nextAppointment.motivo_consulta.trim()) {
-            try {
-                console.log('Programando cita de seguimiento...');
-                const hospitalId = authService.getHospitalId();
-                if (!hospitalId) {
-                    throw new Error('No se pudo obtener el ID del hospital');
-                }
-
-                if (!patientData.pacienteId) {
-                    throw new Error('No se pudo obtener el ID del paciente');
-                }
-
-                // Combinar fecha y hora
-                const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
-                
-                // Validar que la fecha no sea en el pasado
-                if (fechaHora < new Date()) {
-                    showMessage('warning', "✅ Consulta guardada, pero no se pudo programar la cita: No se pueden agendar citas en fechas pasadas");
-                } else {
-                    const fechaHoraISO = fechaHora.toISOString();
-
-                    const citaData = {
-                        paciente_id: patientData.pacienteId,
-                        hospital_id: parseInt(hospitalId),
-                        fecha_hora: fechaHoraISO,
-                        motivo_consulta: nextAppointment.motivo_consulta,
-                        tipoCita: parseInt(nextAppointment.tipo)
-                    };
-
-                    // Programar la nueva cita
-                    await citasService.createCita(citaData);
-                    citaProgramada = true;
-                    console.log('Cita de seguimiento programada exitosamente');
-                }
-                
-            } catch (error) {
-                console.error('Error al programar cita de seguimiento:', error);
-                // Mostrar mensaje de error pero NO impedir que se muestre el resumen
-                showMessage('warning', `✅ Consulta guardada, pero error al programar cita de seguimiento: ${error.message}`);
+        try {
+            if (!cita || !cita.id) {
+                throw new Error('No se encontró la cita a atender');
             }
+
+            if (!sintomas.trim() || !diagnostico.trim() || !tratamiento.trim()) {
+                showAlert('error', "Por favor, complete todos los campos de la consulta (síntomas, diagnóstico y tratamiento)");
+                return;
+            }
+
+            const consultaData = {
+                sintomas: sintomas,
+                diagnostico: diagnostico,
+                tratamiento: tratamiento,
+                medicamentos: medications.map(med => ({
+                    nombre: med.medicamento,
+                    dosis: med.dosis,
+                    frecuencia: med.frecuencia,
+                    duracion: med.duracion,
+                    instrucciones: med.instrucciones
+                })),
+                ordenes: labOrders.map(orden => ({
+                    tipo_examen: orden.estudio,
+                    instrucciones: orden.indicaciones
+                }))
+            };
+
+            setLoadingConsulta(true);
+            
+            // 1. Primero atender la cita actual
+            console.log('Atendiendo cita actual...');
+            const response = await citasService.atenderCita(cita.id, consultaData);
+            setConsultaGuardada(response);
+            console.log('Cita atendida exitosamente');
+
+            // 2. Si hay una próxima cita programada, crearla
+            let citaProgramada = false;
+            if (nextAppointment.fecha && nextAppointment.motivo_consulta.trim()) {
+                try {
+                    console.log('Programando cita de seguimiento...');
+                    const hospitalId = authService.getHospitalId();
+                    if (!hospitalId) {
+                        throw new Error('No se pudo obtener el ID del hospital');
+                    }
+
+                    if (!patientData.pacienteId) {
+                        throw new Error('No se pudo obtener el ID del paciente');
+                    }
+
+                    // Combinar fecha y hora
+                    const fechaHora = new Date(`${nextAppointment.fecha}T${nextAppointment.hora || '12:00'}`);
+                    
+                    // Validar que la fecha no sea en el pasado
+                    if (fechaHora < new Date()) {
+                        showAlert('warning', "✅ Consulta guardada, pero no se pudo programar la cita: No se pueden agendar citas en fechas pasadas");
+                    } else {
+                        const fechaHoraISO = fechaHora.toISOString();
+
+                        const citaData = {
+                            paciente_id: patientData.pacienteId,
+                            hospital_id: parseInt(hospitalId),
+                            fecha_hora: fechaHoraISO,
+                            motivo_consulta: nextAppointment.motivo_consulta,
+                            tipoCita: parseInt(nextAppointment.tipo)
+                        };
+
+                        // Programar la nueva cita
+                        await citasService.createCita(citaData);
+                        citaProgramada = true;
+                        console.log('Cita de seguimiento programada exitosamente');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error al programar cita de seguimiento:', error);
+                    // Mostrar mensaje de error pero NO impedir que se muestre el resumen
+                    showAlert('warning', `✅ Consulta guardada, pero error al programar cita de seguimiento: ${error.message}`);
+                }
+            }
+
+            // Mostrar mensaje final
+            if (citaProgramada) {
+                showAlert('success', '✅ Consulta guardada y cita de seguimiento programada exitosamente');
+            } else {
+                showAlert('success', '✅ Consulta guardada exitosamente');
+            }
+
+            // 3. Mostrar el resumen PDF (SIEMPRE se debe mostrar, incluso si hay error en la cita)
+            console.log('Mostrando resumen PDF...');
+            setShowPdfSummary(true);
+
+        } catch (error) {
+            console.error('Error al guardar la consulta:', error);
+            showAlert('error', '❌ Error al guardar la consulta: ' + error.message);
+        } finally {
+            setLoadingConsulta(false);
         }
-
-        // Mostrar mensaje final
-        if (citaProgramada) {
-            showMessage('success', '✅ Consulta guardada y cita de seguimiento programada exitosamente');
-        } else {
-            showMessage('success', '✅ Consulta guardada exitosamente');
-        }
-
-        // 3. Mostrar el resumen PDF (SIEMPRE se debe mostrar, incluso si hay error en la cita)
-        console.log('Mostrando resumen PDF...');
-        setShowPdfSummary(true);
-
-    } catch (error) {
-        console.error('Error al guardar la consulta:', error);
-        showMessage('error', '❌ Error al guardar la consulta: ' + error.message);
-    } finally {
-        setLoadingConsulta(false);
-    }
-};
-
+    };
     const handlePrintPdf = () => {
         setShowPdfSummary(true);
         setTimeout(() => {
@@ -486,10 +509,13 @@ const handleSaveConsultation = async () => {
             <Sidebar />
             <div className="dashboard-main">
               {/* Mensajes de alerta */}
-                {message.text && (
-                    <div className={`alert-message ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
-                        {message.text}
-                    </div>
+                {alert.show && (
+                    <Alert
+                        type={alert.type}
+                        message={alert.message}
+                        onClose={closeAlert}
+                        duration={5000} // 5 segundos
+                    />
                 )}
                 <header className="header">
                     <div className="header-content">
