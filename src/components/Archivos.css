@@ -11,7 +11,10 @@
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  position: relative;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 40;
 }
 
 .sidebar-content {
@@ -216,6 +219,10 @@
   padding: 1.5rem;
   background-color: #f9fafb;
   flex: 1;
+  max-width: 100%;
+  overflow-x: hidden;
+  height: calc(100vh - 4rem); /* Altura menos el header */
+  overflow-y: auto; /* Scroll vertical */
 }
 
 /* Search and Filter Bar */
@@ -431,5 +438,221 @@
   
   .archivos-content {
     padding: 1rem;
+  }
+}
+
+/* Estilos adicionales para el componente Archivos */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+}
+
+.loading {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-banner {
+  background-color: #fff3f3;
+  border: 1px solid #ffcdd2;
+  color: #d32f2f;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.file-status {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.file-instructions {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.no-files {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Estilos para botones deshabilitados */
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-button:disabled:hover {
+  background-color: transparent;
+}
+
+/* Files Grid con altura fija y scroll interno */
+.files-grid-container {
+  max-height: calc(100vh - 12rem); /* Altura para el grid con scroll */
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding-right: 0.5rem; /* Espacio para el scroll */
+}
+
+/* Estilos para paginación */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-top: 1px solid #e5e7eb;
+  background-color: white;
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-button {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.page-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-button-active {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.page-size-select {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: white;
+}
+
+/* Scroll personalizado */
+.files-grid-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.files-grid-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.files-grid-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.files-grid-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .archivos-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100%;
+    z-index: 50;
+    transition: left 0.3s;
+  }
+  
+  .sidebar-open .sidebar {
+    left: 0;
+  }
+  
+  .archivos-main {
+    margin-left: 0;
+  }
+  
+  .archivos-content {
+    height: auto;
+    overflow-y: visible;
+  }
+  
+  .files-grid-container {
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .search-filter-bar {
+    flex-direction: column;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+  
+  .files-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .user-name {
+    display: none;
+  }
+  
+  .archivos-content {
+    padding: 1rem;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .pagination-controls {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }

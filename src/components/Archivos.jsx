@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
+import { ordenesLabService } from '../services/ordenesLabService';
 import './Archivos.css';
 
 export default function ArchivosPage() {
@@ -9,57 +10,97 @@ export default function ArchivosPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const files = [
-    {
-      id: 1,
-      name: "Hemograma completo - María González",
-      date: "21/11/2024",
-      size: "21 MB",
-      type: "Laboratorio",
-      typeColor: "badge-green",
-    },
-    {
-      id: 2,
-      name: "Radiografía tórax - Carlos Rodriguez",
-      date: "21/11/2024",
-      size: "21 MB",
-      type: "Imagenes",
-      typeColor: "badge-pink",
-    },
-    {
-      id: 3,
-      name: "Electrocardiograma - Ana Martinez",
-      date: "22/11/2024",
-      size: "21 MB",
-      type: "Estudios",
-      typeColor: "badge-red",
-    },
-    {
-      id: 4,
-      name: "Ultrasonido abdominal - Luis Hernández",
-      date: "23/11/2024",
-      size: "21 MB",
-      type: "Imagenes",
-      typeColor: "badge-pink",
-    },
-    {
-      id: 5,
-      name: "Perfil lipídico - Carmen López",
-      date: "23/11/2024",
-      size: "21 MB",
-      type: "Laboratorio",
-      typeColor: "badge-green",
-    },
-    {
-      id: 6,
-      name: "Resonancia magnética - Pedro Sánchez",
-      date: "22/11/2024",
-      size: "21 MB",
-      type: "Imagenes",
-      typeColor: "badge-pink",
-    },
-  ];
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Cargar órdenes al montar el componente
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await ordenesLabService.getAllOrdenes();
+        
+        if (response.success) {
+          setOrdenes(response.ordenes);
+        } else {
+          throw new Error('No se pudieron cargar las órdenes');
+        }
+      } catch (error) {
+        console.error('Error cargando órdenes:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrdenes();
+  }, []);
+
+  // Función para formatear la fecha
+  const formatDate = (dateString) => {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString('es-ES', options);
+  };
+
+  // Función para obtener el nombre completo del paciente
+  const getNombreCompleto = (usuario) => {
+    return `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.trim();
+  };
+
+  // Función para obtener el color del badge según el tipo de examen
+  const getBadgeColor = (tipoExamen) => {
+    const tipo = tipoExamen.toLowerCase();
+    if (tipo.includes('sangre') || tipo.includes('hemograma') || tipo.includes('glucosa') || tipo.includes('lipídico')) {
+      return 'badge-green'; // Laboratorio
+    } else if (tipo.includes('orina')) {
+      return 'badge-pink'; // Imágenes
+    } else {
+      return 'badge-red'; // Otros estudios
+    }
+  };
+
+  // Función para obtener el tipo de archivo para mostrar
+  const getFileType = (tipoExamen) => {
+    const tipo = tipoExamen.toLowerCase();
+    if (tipo.includes('sangre') || tipo.includes('hemograma') || tipo.includes('glucosa') || tipo.includes('lipídico')) {
+      return 'Laboratorio';
+    } else if (tipo.includes('orina')) {
+      return 'Imagenes';
+    } else {
+      return 'Estudios';
+    }
+  };
+
+  // Transformar órdenes a la estructura de archivos
+  const files = ordenes.map(orden => {
+    const paciente = orden.expediente.paciente.usuario;
+    const nombreCompleto = getNombreCompleto(paciente);
+    const tipoExamen = orden.tipo_examen;
+    const tipoArchivo = getFileType(tipoExamen);
+    const badgeColor = getBadgeColor(tipoExamen);
+
+    return {
+      id: orden.id || Math.random(), // Usar ID de la orden o generar uno aleatorio
+      name: `${tipoExamen} - ${nombreCompleto}`,
+      date: formatDate(orden.created_at),
+      size: orden.resultado_url ? "21 MB" : "No disponible",
+      type: tipoArchivo,
+      typeColor: badgeColor,
+      resultadoUrl: orden.resultado_url,
+      estado: orden.estado.nombre,
+      instrucciones: orden.instrucciones,
+      paciente: nombreCompleto,
+      tipoExamen: tipoExamen
+    };
+  });
+
+
 
   const menuItems = [
     {
@@ -141,6 +182,107 @@ export default function ArchivosPage() {
     return matchesSearch && matchesType;
   });
 
+   // Lógica de paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentFiles = filteredFiles.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+
+   // Función para cambiar página
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll al top cuando cambia de página
+    const filesContainer = document.querySelector('.files-grid-container');
+    if (filesContainer) {
+      filesContainer.scrollTop = 0;
+    }
+  };
+
+  // Función para cambiar items por página
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Volver a la primera página
+  };
+
+  // Función para manejar la descarga/visualización
+  const handleViewFile = (resultadoUrl) => {
+    if (resultadoUrl) {
+      window.open(resultadoUrl, '_blank');
+    } else {
+      alert('No hay resultado disponible para esta orden');
+    }
+  };
+
+  // Función para manejar la descarga
+  const handleDownloadFile = (resultadoUrl, fileName) => {
+    if (resultadoUrl) {
+      // Crear un enlace temporal para descargar
+      const link = document.createElement('a');
+      link.href = resultadoUrl;
+      link.download = fileName || 'resultado.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert('No hay resultado disponible para descargar');
+    }
+  };
+
+   // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Mostrar todas las páginas
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Mostrar páginas con elipsis
+      if (currentPage <= 3) {
+        // Primeras páginas
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Últimas páginas
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Páginas intermedias
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
+
+
+  if (loading) {
+    return (
+      <div className="archivos-container">
+        <div className="archivos-main">
+          <div className="loading-container">
+            <div className="loading">Cargando órdenes de laboratorio...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`archivos-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
       {/* Sidebar */}
@@ -218,6 +360,12 @@ export default function ArchivosPage() {
 
         {/* Content Area */}
         <div className="archivos-content">
+          {error && (
+            <div className="error-banner">
+              <span>⚠️ Error al cargar órdenes: {error}</span>
+            </div>
+          )}
+
           {/* Search and Filter Bar */}
           <div className="search-filter-bar">
             <div className="search-container">
@@ -245,69 +393,148 @@ export default function ArchivosPage() {
           </div>
 
           {/* Files Grid */}
-          <div className="files-grid">
-            {filteredFiles.map((file) => (
-              <div key={file.id} className="file-card">
-                <div className="file-card-content">
-                  {/* File Icon and Badge */}
-                  <div className="file-header">
-                    <div className="file-icon">
-                      <svg className="file-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
+          <div className="files-grid-container">
+            <div className="files-grid">
+              {currentFiles.map((file) => (
+                <div key={file.id} className="file-card">
+                  <div className="file-card-content">
+                    {/* File Icon and Badge */}
+                    <div className="file-header">
+                      <div className="file-icon">
+                        <svg className="file-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </div>
+                      <span className={`file-badge ${file.typeColor}`}>{file.type}</span>
                     </div>
-                    <span className={`file-badge ${file.typeColor}`}>{file.type}</span>
-                  </div>
 
-                  {/* File Info */}
-                  <div className="file-info">
-                    <h3 className="file-name">{file.name}</h3>
-                    <div className="file-details">
-                      <span>{file.date}</span>
-                      <span>{file.size}</span>
+                    {/* File Info */}
+                    <div className="file-info">
+                      <h3 className="file-name">{file.name}</h3>
+                      <div className="file-details">
+                        <span>{file.date}</span>
+                        <span>{file.size}</span>
+                      </div>
+                      <div className="file-status">
+                        <small>Estado: <strong>{file.estado}</strong></small>
+                      </div>
+                      {file.instrucciones && (
+                        <div className="file-instructions">
+                          <small><strong>Instrucciones:</strong> {file.instrucciones}</small>
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="file-actions">
-                    <button className="action-button view-button">
-                      <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      Ver
-                    </button>
-                    <button className="action-button download-button">
-                      <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      Descargar
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="file-actions">
+                      <button 
+                        className="action-button view-button"
+                        onClick={() => handleViewFile(file.resultadoUrl)}
+                        disabled={!file.resultadoUrl}
+                      >
+                        <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                        Ver
+                      </button>
+                      <button 
+                        className="action-button download-button"
+                        onClick={() => handleDownloadFile(file.resultadoUrl, `${file.tipoExamen}-${file.paciente}`)}
+                        disabled={!file.resultadoUrl}
+                      >
+                        <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Descargar
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+           {filteredFiles.length === 0 && !loading && (
+            <div className="no-files">
+              <p>No se encontraron archivos que coincidan con la búsqueda</p>
+            </div>
+          )}
+
+          {/* Paginación */}
+          {filteredFiles.length > 0 && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredFiles.length)} de {filteredFiles.length} archivos
+              </div>
+              
+              <div className="pagination-controls">
+                <select 
+                  className="page-size-select"
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={100}>100</option>
+                </select>
+                
+                <div className="pagination-buttons">
+                  <button
+                    className="page-button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </button>
+                  
+                  {getPageNumbers().map((pageNumber, index) => (
+                    pageNumber === '...' ? (
+                      <span key={`ellipsis-${index}`} className="page-ellipsis">...</span>
+                    ) : (
+                      <button
+                        key={pageNumber}
+                        className={`page-button ${currentPage === pageNumber ? 'page-button-active' : ''}`}
+                        onClick={() => handlePageChange(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    )
+                  ))}
+                  
+                  <button
+                    className="page-button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}  
+
         </div>
       </div>
     </div>
