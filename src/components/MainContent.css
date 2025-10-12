@@ -518,3 +518,45 @@
     gap: 0.25rem;
   }
 }
+
+/* Agregar al final de MainContent.css */
+
+/* Filtro de tipo de consulta */
+.form-select {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: white;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mejorar el diseño de los filtros */
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 60px;
+}
+
+/* Estilo para citas virtuales */
+.appointment-type.virtual {
+  color: #ec4899;
+  font-weight: 500;
+}
+
+.appointment-type.presencial {
+  color: #10b981;
+  font-weight: 500;
+}

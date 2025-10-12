@@ -22,6 +22,9 @@ export default function MainContent() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Nuevo estado para tipo de consulta
+  const [appointmentType, setAppointmentType] = useState('todas'); // 'todas', 'presencial', 'virtual'
+
   useEffect(() => {
     console.log('Token: ', authService.getToken());
     console.log('User ID: ', authService.getUserId());
@@ -81,9 +84,22 @@ export default function MainContent() {
     return () => window.removeEventListener('authError', handleAuthError);
   }, [navigate]);
 
-  // Aplicar filtros de búsqueda y fecha
+  // Aplicar filtros de búsqueda, fecha y tipo
   useEffect(() => {
     let result = allCitas;
+
+    // Filtrar por tipo de consulta
+    if (appointmentType !== 'todas') {
+      result = result.filter(cita => {
+        const tipo = cita.tipo.tipo.toLowerCase();
+        if (appointmentType === 'virtual') {
+          return tipo.includes('virtual');
+        } else if (appointmentType === 'presencial') {
+          return tipo.includes('presencial');
+        }
+        return true;
+      });
+    }
 
     // Filtrar por término de búsqueda
     if (searchTerm) {
@@ -111,7 +127,7 @@ export default function MainContent() {
 
     setFilteredCitas(result);
     setCurrentPage(1); // Resetear a la primera página cuando cambian los filtros
-  }, [allCitas, searchTerm, dateRange]);
+  }, [allCitas, searchTerm, dateRange, appointmentType]);
 
   // Calcular páginas cuando cambian los elementos filtrados o items por página
   useEffect(() => {
@@ -132,22 +148,38 @@ export default function MainContent() {
   };
 
   const handleAttend = (cita) => {
-  if (cita.estado.nombre === 'Pendiente' || cita.estado.nombre === 'Confirmado') {
-    // Pasar el ID del paciente como parámetro y los datos en el state
-    navigate(`/consulta/${cita.paciente.usuario.id}`, {
-      state: { 
-        cita,
-        pacienteId: cita.paciente.id,
-        userId: cita.paciente.usuario.id,
-        pacienteNombre: `${cita.paciente.usuario.primer_nombre} ${cita.paciente.usuario.primer_apellido}`
+    if (cita.estado.nombre === 'Pendiente' || cita.estado.nombre === 'Confirmado') {
+      const isVirtual = cita.tipo.tipo.toLowerCase().includes('virtual');
+      
+      if (isVirtual) {
+        // Redirigir a teleconsulta
+        navigate(`/teleconsulta/${cita.paciente.usuario.id}`, {
+          state: { 
+            cita,
+            pacienteId: cita.paciente.id,
+            userId: cita.paciente.usuario.id,
+            pacienteNombre: `${cita.paciente.usuario.primer_nombre} ${cita.paciente.usuario.primer_apellido}`,
+            roomId: cita.roomId || `room_${cita.id}_${Date.now()}`
+          }
+        });
+      } else {
+        // Redirigir a consulta presencial
+        navigate(`/consulta/${cita.paciente.usuario.id}`, {
+          state: { 
+            cita,
+            pacienteId: cita.paciente.id,
+            userId: cita.paciente.usuario.id,
+            pacienteNombre: `${cita.paciente.usuario.primer_nombre} ${cita.paciente.usuario.primer_apellido}`
+          }
+        });
       }
-    });
-  }
-};
+    }
+  };
 
   const handleDateFilter = () => {
     setFilteredCitas(allCitas); // Resetear filtros
     setDateRange({ startDate: '', endDate: '' });
+    setAppointmentType('todas');
   };
 
   const handleItemsPerPageChange = (e) => {
@@ -178,7 +210,7 @@ export default function MainContent() {
   };
 
   const getAppointmentType = (cita) => {
-    return cita.roomId ? 'Virtual' : 'Presencial';
+    return cita.tipo.tipo.includes('Virtual') ? 'Virtual' : 'Presencial';
   };
 
   const formatDate = (dateString) => {
@@ -275,6 +307,20 @@ export default function MainContent() {
           {showFilters && (
             <div className="filters-panel">
               <div className="filter-group">
+                <label htmlFor="appointmentType">Tipo:</label>
+                <select
+                  id="appointmentType"
+                  value={appointmentType}
+                  onChange={(e) => setAppointmentType(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="todas">Todas las citas</option>
+                  <option value="virtual">Solo virtuales</option>
+                  <option value="presencial">Solo presenciales</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
                 <label htmlFor="startDate">Desde:</label>
                 <input
                   id="startDate"
@@ -317,7 +363,9 @@ export default function MainContent() {
         <div className="card-header">
           <div className="card-header-content">
             <h2 className="card-title">
-              Todas las Citas ({filteredCitas.length})
+              {appointmentType === 'todas' ? 'Todas las Citas' : 
+               appointmentType === 'virtual' ? 'Citas Virtuales' : 'Citas Presenciales'} 
+              ({filteredCitas.length})
             </h2>
             <div className="pagination-controls-top">
               <div className="items-per-page-selector">
@@ -349,7 +397,7 @@ export default function MainContent() {
           
           {filteredCitas.length === 0 ? (
             <div className="no-appointments">
-              {searchTerm || dateRange.startDate || dateRange.endDate 
+              {searchTerm || dateRange.startDate || dateRange.endDate || appointmentType !== 'todas'
                 ? 'No se encontraron citas que coincidan con los filtros' 
                 : 'No hay citas programadas'
               }

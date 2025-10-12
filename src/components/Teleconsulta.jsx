@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import './TeleConsulta.css';
 
 export default function TeleConsulta() {
   const params = useParams();
-  const patientName = decodeURIComponent(params.patient || 'María González');
+  const location = useLocation();
+  const { cita } = location.state || {};
+  
+  // Usar datos de la cita o valores por defecto
+  const patientName = cita ? 
+    `${cita.paciente.usuario.primer_nombre} ${cita.paciente.usuario.primer_apellido}` : 
+    decodeURIComponent(params.patient || 'Paciente');
+  
   const [chatMessages, setChatMessages] = useState([
     { sender: "patient", message: "Hola doctor, ¿me puede escuchar bien?" },
     { sender: "doctor", message: "Si, perfectamente ¿Cómo se siente hoy?" },
@@ -28,7 +35,7 @@ export default function TeleConsulta() {
         {/* Header */}
         <header className="teleconsulta-header">
           <div className="header-content">
-            <h1 className="header-title">Consulta-{patientName}</h1>
+            <h1 className="header-title">Teleconsulta - {patientName}</h1>
             <div className="header-right">
               <div className="user-info">
                 <div className="user-avatar">
@@ -56,7 +63,9 @@ export default function TeleConsulta() {
             <div className="video-container">
               <div className="video-placeholder">
                 <div className="patient-avatar-large">
-                  <span className="avatar-text">AM</span>
+                  <span className="avatar-text">
+                    {patientName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </span>
                 </div>
                 <div className="patient-info-overlay">
                   {patientName}
@@ -106,14 +115,14 @@ export default function TeleConsulta() {
               </div>
             </div>
 
-            {/* Consultation Form */}
+            {/* Consultation Form - Con el mismo estilo que consultas presenciales */}
             <div className="consultation-form">
               <div className="form-header">
-                <h2 className="form-title">Consulta Médica - {patientName}</h2>
+                <h2 className="form-title">Consulta Virtual - {patientName}</h2>
                 <div className="patient-details">
-                  <span><strong>Edad:</strong> 45 años</span>
-                  <span className="allergy-badge">Alergia: Penicilina</span>
-                  <span><strong>Último dx:</strong> Hipertensión</span>
+                  <span><strong>Cédula:</strong> {cita?.paciente?.usuario?.cedula || 'N/A'}</span>
+                  <span className="allergy-badge">Consulta Virtual</span>
+                  <span><strong>Expediente:</strong> {cita?.expediente?.folio || 'N/A'}</span>
                 </div>
               </div>
 
@@ -122,18 +131,19 @@ export default function TeleConsulta() {
                   {/* Left Column */}
                   <div className="form-column">
                     <div className="form-group">
+                      <label className="form-label">Motivo de Consulta</label>
+                      <textarea 
+                        className="form-textarea" 
+                        placeholder="Motivo de la consulta..." 
+                        rows="3"
+                        defaultValue={cita?.motivo_consulta || ''}
+                      ></textarea>
+                    </div>
+                    <div className="form-group">
                       <label className="form-label">Evolución</label>
                       <textarea 
                         className="form-textarea" 
                         placeholder="Describe la evolución del paciente..." 
-                        rows="4"
-                      ></textarea>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Diagnóstico</label>
-                      <textarea 
-                        className="form-textarea" 
-                        placeholder="Diagnóstico principal y secundario" 
                         rows="4"
                       ></textarea>
                     </div>
@@ -142,6 +152,14 @@ export default function TeleConsulta() {
                   {/* Right Column */}
                   <div className="form-column">
                     <div className="form-group">
+                      <label className="form-label">Diagnóstico</label>
+                      <textarea 
+                        className="form-textarea" 
+                        placeholder="Diagnóstico principal y secundario" 
+                        rows="4"
+                      ></textarea>
+                    </div>
+                    <div className="form-group">
                       <label className="form-label">Plan de manejo</label>
                       <textarea 
                         className="form-textarea" 
@@ -149,33 +167,33 @@ export default function TeleConsulta() {
                         rows="4"
                       ></textarea>
                     </div>
-                    <div className="form-group">
-                      <div className="form-group-header">
-                        <label className="form-label">Medicamentos</label>
-                        <button className="add-button">
-                          + Agregar
-                        </button>
-                      </div>
-                      <div className="medications-container">
-                        {medications.length === 0 ? (
-                          <p className="empty-state">No hay medicamentos agregados</p>
-                        ) : (
-                          medications.map((med, index) => (
-                            <div key={index} className="medication-item">
-                              <div className="medication-name">{med.name}</div>
-                              <div className="medication-details">
-                                {med.dose} - {med.frequency}
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 {/* Bottom Sections */}
                 <div className="form-bottom">
+                  <div className="form-group">
+                    <div className="form-group-header">
+                      <label className="form-label">Medicamentos</label>
+                      <button className="add-button">
+                        + Agregar
+                      </button>
+                    </div>
+                    <div className="medications-container">
+                      {medications.length === 0 ? (
+                        <p className="empty-state">No hay medicamentos agregados</p>
+                      ) : (
+                        medications.map((med, index) => (
+                          <div key={index} className="medication-item">
+                            <div className="medication-name">{med.name}</div>
+                            <div className="medication-details">
+                              {med.dose} - {med.frequency}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                   <div className="form-group">
                     <div className="form-group-header">
                       <label className="form-label">Órdenes de laboratorio</label>
@@ -192,16 +210,6 @@ export default function TeleConsulta() {
                       </select>
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Próxima cita</label>
-                    <div className="appointment-fields">
-                      <input type="date" className="form-input" placeholder="dd/mm/yyyy" />
-                      <select className="form-select">
-                        <option>Teleconsulta</option>
-                        <option>Presencial</option>
-                      </select>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -210,7 +218,7 @@ export default function TeleConsulta() {
                     Generar Resumen
                   </button>
                   <button className="primary-button">
-                    Guardar Consulta
+                    Finalizar Consulta
                   </button>
                 </div>
               </div>
@@ -234,15 +242,15 @@ export default function TeleConsulta() {
                 </h3>
               </div>
               <div className="chat-messages">
-                <div className="message-time">15:05</div>
-                <div className="message patient-message">
-                  Hola doctor, ¿me puede escuchar bien?
-                </div>
-                
-                <div className="message doctor-message">
-                  <div className="message-content">Si, perfectamente ¿Cómo se siente hoy?</div>
-                  <div className="message-time">15:06</div>
-                </div>
+                {chatMessages.map((msg, index) => (
+                  <div key={index}>
+                    {index === 0 && <div className="message-time">15:05</div>}
+                    <div className={`message ${msg.sender}-message`}>
+                      <div className="message-content">{msg.message}</div>
+                      {msg.sender === 'doctor' && <div className="message-time">15:06</div>}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="chat-input-container">
                 <input

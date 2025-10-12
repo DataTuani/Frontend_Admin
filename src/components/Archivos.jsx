@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { ordenesLabService } from '../services/ordenesLabService';
 import './Archivos.css';
+import Alert from './Alerta';
 
 export default function ArchivosPage() {
   const location = useLocation();
@@ -18,29 +19,177 @@ export default function ArchivosPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Estados para el modal de subida de archivos
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileName, setFileName] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [currentOrdenId, setCurrentOrdenId] = useState(null);
+
+
+  // Estados para alertas
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
+  // Función para cargar órdenes - MOVIDA FUERA DEL useEffect
+  const fetchOrdenes = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await ordenesLabService.getAllOrdenes();
+      
+      if (response.success) {
+        setOrdenes(response.ordenes);
+      } else {
+        throw new Error('No se pudieron cargar las órdenes');
+      }
+    } catch (error) {
+      console.error('Error cargando órdenes:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Cargar órdenes al montar el componente
   useEffect(() => {
-    const fetchOrdenes = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const response = await ordenesLabService.getAllOrdenes();
-        
-        if (response.success) {
-          setOrdenes(response.ordenes);
-        } else {
-          throw new Error('No se pudieron cargar las órdenes');
-        }
-      } catch (error) {
-        console.error('Error cargando órdenes:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrdenes();
   }, []);
+
+
+  // Función para mostrar alertas
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => {
+      setAlert({ show: false, type: '', message: '' });
+    }, 5000);
+  };
+
+  const handleOpenUploadModal = (ordenId) => {
+    console.log('Abriendo modal para orden:', ordenId);
+    setCurrentOrdenId(ordenId);
+    setShowUploadModal(true);
+    setShowConfirmation(false);
+    setSelectedFile(null);
+    setFileName('');
+  };
+
+  // Función para manejar la selección de archivo
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Verificar que sea un PDF
+      if (file.type !== 'application/pdf') {
+        showAlert('error', 'Solo se permiten archivos PDF');
+        return;
+      }
+
+      // Verificar tamaño del archivo (10MB máximo)
+      if (file.size > 10 * 1024 * 1024) {
+        showAlert('error', 'El archivo no debe superar los 10MB');
+        return;
+      }
+
+      setSelectedFile(file);
+      setFileName(file.name);
+      setShowConfirmation(true);
+    }
+  };
+
+  // Función para manejar el drag and drop
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      const inputEvent = {
+        target: {
+          files: [file]
+        }
+      };
+      handleFileSelect(inputEvent);
+    }
+  };
+
+  // Función para prevenir el comportamiento por defecto del drag over
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  // Función para subir el archivo
+  const handleUpload = async () => {
+  console.log('handleUpload llamado - currentOrdenId:', currentOrdenId, 'selectedFile:', selectedFile);
+  
+  if (!selectedFile) {
+    console.error('No hay archivo seleccionado');
+    showAlert('error', 'No hay archivo seleccionado');
+    return;
+  }
+
+  if (!currentOrdenId) {
+    console.error('No hay orden ID seleccionada');
+    showAlert('error', 'No se ha seleccionado una orden');
+    return;
+  }
+
+  setUploading(true);
+  try {
+    console.log('Subiendo archivo:', {
+      nombre: selectedFile.name,
+      tamaño: selectedFile.size,
+      tipo: selectedFile.type,
+      ordenId: currentOrdenId
+    });
+    
+    // Llamar al servicio para subir el archivo
+    const response = await ordenesLabService.uploadOrdenPdf(currentOrdenId, selectedFile);
+    
+    console.log('Respuesta completa del servidor:', response);
+    
+    if (response.success) {
+      showAlert('success', 'Archivo subido exitosamente');
+      
+      // Recargar las órdenes para mostrar el archivo actualizado
+      await fetchOrdenes();
+      
+      // Cerrar modales
+      handleCloseModal();
+    } else {
+      throw new Error(response.message || 'Error al subir el archivo');
+    }
+    
+  } catch (error) {
+    console.error('Error completo subiendo archivo:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response
+    });
+    showAlert('error', error.message || 'Error al subir el archivo. Verifica la consola para más detalles.');
+  } finally {
+    setUploading(false);
+  }
+};
+
+  // Función para cancelar la subida
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    setFileName('');
+    setShowConfirmation(false);
+  };
+
+  // Función para cerrar el modal principal
+  const handleCloseModal = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setFileName('');
+    setShowConfirmation(false);
+    setCurrentOrdenId(null);
+  };
+  // Función para abrir el selector de archivos
+  const handleBrowseClick = () => {
+    event.stopPropagation();
+    document.getElementById('file-input').click();
+  };
+
 
   // Función para formatear la fecha
   const formatDate = (dateString) => {
@@ -84,19 +233,24 @@ export default function ArchivosPage() {
     const tipoExamen = orden.tipo_examen;
     const tipoArchivo = getFileType(tipoExamen);
     const badgeColor = getBadgeColor(tipoExamen);
+    
+    // Determinar si tiene archivo subido
+    const tieneArchivo = !!orden.resultado_url;
 
     return {
-      id: orden.id || Math.random(), // Usar ID de la orden o generar uno aleatorio
+      id: orden.id,
       name: `${tipoExamen} - ${nombreCompleto}`,
       date: formatDate(orden.created_at),
-      size: orden.resultado_url ? "21 MB" : "No disponible",
+      size: tieneArchivo ? "21 MB" : "Sin archivo",
       type: tipoArchivo,
       typeColor: badgeColor,
       resultadoUrl: orden.resultado_url,
       estado: orden.estado.nombre,
       instrucciones: orden.instrucciones,
       paciente: nombreCompleto,
-      tipoExamen: tipoExamen
+      tipoExamen: tipoExamen,
+      ordenId: orden.id,
+      tieneArchivo: tieneArchivo
     };
   });
 
@@ -387,11 +541,9 @@ export default function ArchivosPage() {
               <option value="imagenes">Imágenes</option>
               <option value="estudios">Estudios</option>
             </select>
-            <button className="upload-button">
-              Subir Archivo
-            </button>
           </div>
 
+          {/* Files Grid - MODIFICADO con lógica condicional de botones */}
           {/* Files Grid */}
           <div className="files-grid-container">
             <div className="files-grid">
@@ -432,41 +584,62 @@ export default function ArchivosPage() {
 
                     {/* Action Buttons */}
                     <div className="file-actions">
+                      {/* Botón VER - solo se muestra si hay archivo */}
+                      {file.tieneArchivo && (
+                        <button 
+                          className="action-button view-button"
+                          onClick={() => handleViewFile(file.resultadoUrl)}
+                        >
+                          <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                          Ver
+                        </button>
+                      )}
+
+                      {/* Botón DESCARGAR - solo se muestra si hay archivo */}
+                      {file.tieneArchivo && (
+                        <button 
+                          className="action-button download-button"
+                          onClick={() => handleDownloadFile(file.resultadoUrl, `${file.tipoExamen}-${file.paciente}`)}
+                        >
+                          <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          Descargar
+                        </button>
+                      )}
+
+                      {/* Botón SUBIR/ACTUALIZAR - siempre visible pero con texto diferente */}
                       <button 
-                        className="action-button view-button"
-                        onClick={() => handleViewFile(file.resultadoUrl)}
-                        disabled={!file.resultadoUrl}
+                        className={`action-button ${file.tieneArchivo ? 'update-button' : 'upload-button'}`}
+                        onClick={() => handleOpenUploadModal(file.ordenId)}
                       >
                         <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                           />
                         </svg>
-                        Ver
-                      </button>
-                      <button 
-                        className="action-button download-button"
-                        onClick={() => handleDownloadFile(file.resultadoUrl, `${file.tipoExamen}-${file.paciente}`)}
-                        disabled={!file.resultadoUrl}
-                      >
-                        <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        Descargar
+                        {file.tieneArchivo ? 'Actualizar PDF' : 'Subir PDF'}
                       </button>
                     </div>
                   </div>
@@ -533,10 +706,132 @@ export default function ArchivosPage() {
                 </div>
               </div>
             </div>
-          )}  
+          )} 
 
         </div>
       </div>
+
+      {/* Modal para subir archivos */}
+      {showUploadModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>
+                {files.find(f => f.ordenId === currentOrdenId)?.tieneArchivo 
+                  ? 'Actualizar Archivo PDF' 
+                  : 'Subir Archivo PDF'
+                }
+              </h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {!showConfirmation ? (
+                <div 
+                  className="upload-area"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  <div className="upload-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <h3>Arrastra y suelta para subir el archivo PDF o</h3>
+                  <button 
+                    type="button" 
+                    className="browse-button"
+                    onClick={handleBrowseClick}
+                  >
+                    Buscar en el equipo
+                  </button>
+                  <p className="upload-info">
+                    Solo se permiten archivos PDF
+                    <br />
+                    <span>Tamaño máximo: 10MB</span>
+                  </p>
+                  
+                  {/* Mensaje contextual si ya existe un archivo */}
+                  {files.find(f => f.ordenId === currentOrdenId)?.tieneArchivo && (
+                    <div className="existing-file-warning">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <span>Ya existe un archivo subido. Al subir uno nuevo, se reemplazará el anterior.</span>
+                    </div>
+                  )}
+                  
+                  <input
+                    id="file-input"
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              ) : (
+                <div className="confirmation-area">
+                  <div className="file-preview">
+                    <div className="file-icon-preview">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="file-info-preview">
+                      <h4>{fileName}</h4>
+                      <p>PDF Document - {(selectedFile?.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+                  
+                  <div className="confirmation-actions">
+                    <p>
+                      {files.find(f => f.ordenId === currentOrdenId)?.tieneArchivo 
+                        ? '¿Estás seguro de que quieres actualizar el archivo de esta orden?'
+                        : '¿Estás seguro de que quieres subir este archivo a la orden?'
+                      }
+                    </p>
+                    <div className="action-buttons">
+                      <button 
+                        type="button"
+                        className="cancel-button"
+                        onClick={handleCancelUpload}
+                        disabled={uploading}
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        type="button"
+                        className="confirm-button"
+                        onClick={handleUpload}
+                        disabled={uploading || !selectedFile}
+                      >
+                        {uploading 
+                          ? (files.find(f => f.ordenId === currentOrdenId)?.tieneArchivo ? 'Actualizando...' : 'Subiendo...')
+                          : 'Aceptar'
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alertas */}
+      {alert.show && (
+        <Alert 
+          type={alert.type} 
+          message={alert.message} 
+          onClose={() => setAlert({ show: false, type: '', message: '' })}
+        />
+      )}
+
     </div>
   );
 }
