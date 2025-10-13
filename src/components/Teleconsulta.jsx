@@ -12,6 +12,11 @@ export default function TeleConsulta() {
     const location = useLocation();
     const navigate = useNavigate();
     const { cita, pacienteNombre, userId, pacienteId } = location.state || {};
+
+    const nombre_doctor = authService.getUser()
+          ? `${authService.getUser().primer_nombre} ${authService.getUser().primer_apellido}`
+          : 'Invitado';
+        document.title = `Bienvenido, Dr(a). ${nombre_doctor}`;
     
     // State para el expediente
     const [expediente, setExpediente] = useState(null);
@@ -531,9 +536,9 @@ export default function TeleConsulta() {
                         <div className="header-right">
                             <div className="user-info">
                                 <div className="user-avatar">
-                                    <span className="avatar-text">M</span>
+                                    <span className="avatar-text">C</span>
                                 </div>
-                                <span className="user-name">Dr. Melanie Espinoza</span>
+                                <span className="user-name">Dr(a). {nombre_doctor}</span>
                             </div>
                         </div>
                     </div>
@@ -586,7 +591,7 @@ export default function TeleConsulta() {
                                 {/* Doctor's video feed (small) */}
                                 <div className="doctor-video-feed">
                                     <div className="doctor-avatar-small">
-                                        <span className="avatar-text">ME</span>
+                                        <span className="avatar-text">CR</span>
                                     </div>
                                 </div>
 
@@ -671,7 +676,7 @@ export default function TeleConsulta() {
 
                                     {/* Doctor Signature */}
                                     <div className="doctor-signature">
-                                        <p className="doctor-name">Dr. Melanie Espinoza</p>
+                                        <p className="doctor-name">Dr (a). {nombre_doctor}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1143,7 +1148,7 @@ export default function TeleConsulta() {
 
                         <div className="pdf-content">
                             <div className="pdf-doctor-info">
-                                <h2 className="pdf-doctor-name">Dr. Melanie Espinoza</h2>
+                                <h2 className="pdf-doctor-name">Dr (a). {nombre_doctor}</h2>
                                 <p className="pdf-doctor-specialty">Medicina General</p>
                                 <p className="pdf-doctor-contact">Cédula: 001-241003-10338 Tel: 7616-8096</p>
                                 
@@ -1249,7 +1254,7 @@ export default function TeleConsulta() {
                             <div className="pdf-signature">
                                 <p className="pdf-signature-label">Firma del médico</p>
                                 <div className="pdf-signature-details">
-                                    <p className="pdf-doctor-name-signature">Dr. Melanie Espinoza</p>
+                                    <p className="pdf-doctor-name-signature">Dr (a). {nombre_doctor}y</p>
                                     <p className="pdf-doctor-specialty-signature">Medicina General</p>
                                     <p className="pdf-doctor-license">Cédula Profesional: 12345678</p>
                                 </div>

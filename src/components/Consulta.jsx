@@ -8,6 +8,11 @@ import { authService } from '../services/auth';
 import Alert from './Alerta';
 
 export default function ConsultationPage() {
+    const nombre_completo_usuaro = authService.getUser()
+          ? `${authService.getUser().primer_nombre} ${authService.getUser().primer_apellido}`
+          : 'Invitado';
+        document.title = `Bienvenido, Dr(a). ${nombre_completo_usuaro}`;
+        
     const { patient } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
@@ -529,9 +534,10 @@ const handleSaveConsultation = async () => {
                         <div className="header-right">
                             <div className="user-info">
                                 <div className="user-avatar">
-                                    <span className="avatar-text">M</span>
+            
+                                    <span className="avatar-text">{C}</span>
                                 </div>
-                                <span className="user-name">Dr. Melanie Espinoza</span>
+                                <span className="user-name">{nombre_completo_usuaro}</span>
                             </div>
                         </div>
                     </div>
@@ -682,7 +688,7 @@ const handleSaveConsultation = async () => {
 
                                 {/* Doctor Signature */}
                                 <div className="doctor-signature">
-                                    <p className="doctor-name">Dr. Melanie Espinoza</p>
+                                    <p className="doctor-name">Dr(a). {nombre_completo_usuaro}</p>
                                 </div>
                             </div>
                         </div>
@@ -1030,7 +1036,7 @@ const handleSaveConsultation = async () => {
 
                         <div className="pdf-content">
                             <div className="pdf-doctor-info">
-                                <h2 className="pdf-doctor-name">Dr. Melanie Espinoza</h2>
+                                <h2 className="pdf-doctor-name">{nombre_completo_usuaro}</h2>
                                 <p className="pdf-doctor-specialty">Medicina General</p>
                                 <p className="pdf-doctor-contact">Cédula: 001-241003-10338 Tel: 7616-8096</p>
                                 
@@ -1136,7 +1142,7 @@ const handleSaveConsultation = async () => {
                             <div className="pdf-signature">
                                 <p className="pdf-signature-label">Firma del médico</p>
                                 <div className="pdf-signature-details">
-                                    <p className="pdf-doctor-name-signature">Dr. Melanie Espinoza</p>
+                                    <p className="pdf-doctor-name-signature">Dr(a). {nombre_completo_usuaro}</p>
                                     <p className="pdf-doctor-specialty-signature">Medicina General</p>
                                     <p className="pdf-doctor-license">Cédula Profesional: 12345678</p>
                                 </div>

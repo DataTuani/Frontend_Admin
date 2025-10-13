@@ -14,6 +14,11 @@ export default function ExpedientePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const nombre_completo_usuaro = authService.getUser()
+        ? `${authService.getUser().primer_nombre} ${authService.getUser().primer_apellido}`
+        : 'Invitado';
+      document.title = `Bienvenido, Dr(a). ${nombre_completo_usuaro}`;
+
   // Estados para paginacion
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -304,9 +309,9 @@ export default function ExpedientePage() {
             <div className="header-right">
               <div className="user-info">
                 <div className="user-avatar">
-                  <span className="avatar-text">M</span>
+                  <span className="avatar-text">C</span>
                 </div>
-                <span className="user-name">Dr. Melanie Espinoza</span>
+                <span className="user-name">Dr(a). {nombre_completo_usuaro}</span>
               </div>
               <button className="header-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

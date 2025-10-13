@@ -8,6 +8,11 @@ export default function SeguimientoPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const nombre_completo_usuaro = authService.getUser()
+        ? `${authService.getUser().primer_nombre} ${authService.getUser().primer_apellido}`
+        : 'Invitado';
+      document.title = `Bienvenido, Dr(a). ${nombre_completo_usuaro}`;
+
   // Array de colores que se repetirá cíclicamente
   const colorCycle = ['green', 'pink', 'blue', 'yellow', 'purple', 'orange'];
 
@@ -182,9 +187,9 @@ export default function SeguimientoPage() {
             <div className="header-right">
               <div className="user-info">
                 <div className="user-avatar">
-                  <span className="avatar-text">M</span>
+                  <span className="avatar-text">C</span>
                 </div>
-                <span className="user-name">Dr. Melanie Espinoza</span>
+                <span className="user-name">Dr(a). {nombre_completo_usuaro}</span>
               </div>
               <button className="header-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
