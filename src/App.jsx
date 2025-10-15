@@ -19,6 +19,7 @@ import TeleconsultasList from "./components/TeleconsultasList";
 import { authService } from "./services/auth";
 import MinsaDashboardPage from "./components/MinsaDashboardPage";
 import MinsaLoginPage from "./components/MinsaLoginPage";
+import IntegracionComunitariaPage from "./components/IntegracionComunitariaPage"; // Nueva importación
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -213,6 +214,18 @@ function App() {
             element={
               isMinsaAuthenticated ? (
                 <MinsaDashboardPage />
+              ) : (
+                <Navigate to="/minsa/login" replace />
+              )
+            }
+          />
+
+          {/* Nueva ruta para Integración Comunitaria */}
+          <Route
+            path="/minsa/integracion"
+            element={
+              isMinsaAuthenticated ? (
+                <IntegracionComunitariaPage />
               ) : (
                 <Navigate to="/minsa/login" replace />
               )

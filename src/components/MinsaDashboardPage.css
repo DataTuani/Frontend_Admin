@@ -541,3 +541,12 @@
     gap: 0.5rem;
   }
 }
+
+.minsa-layout {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.minsa-content {
+  padding: 1.5rem;
+}

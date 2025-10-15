@@ -118,7 +118,7 @@ export default function MinsaDashboardPage() {
             <a href="#" className="minsa-nav-link">
               Reportes
             </a>
-            <a href="#" className="minsa-nav-link">
+            <a href="/minsa/integracion" className="minsa-nav-link">
               Integración comunitaria
             </a>
           </nav>
