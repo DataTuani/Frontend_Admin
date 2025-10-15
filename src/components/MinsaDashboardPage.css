@@ -1,0 +1,543 @@
+.minsa-dashboard {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* Componentes base */
+.minsa-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.minsa-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.minsa-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.minsa-card-content {
+  padding: 1.5rem;
+}
+
+.minsa-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+}
+
+/* Badge amarillo para Monitoreo */
+.minsa-badge.monitoring {
+  background-color: #f59e0b; /* Color amarillo */
+}
+
+.minsa-badge.active {
+  background-color: #dc2626;
+}
+
+/* Header Styles */
+.minsa-header {
+  background-color: #DFF3FD;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.minsa-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 5rem;
+}
+
+.minsa-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.minsa-logo {
+  object-fit: contain;
+}
+
+.minsa-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.minsa-nav-link {
+  color: #475569;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+  font-size: 0.875rem;
+}
+
+.minsa-nav-link:hover {
+  color: #334155;
+}
+
+.minsa-nav-link.active {
+  color: #1e40af;
+  border-bottom: 2px solid #1e40af;
+}
+
+.minsa-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.minsa-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.minsa-user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #1e40af;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minsa-avatar-text {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.minsa-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.minsa-header-button {
+  padding: 0.5rem;
+  color: #64748b;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.minsa-header-button:hover {
+  color: #374151;
+  background-color: #f1f5f9;
+}
+
+.minsa-logout-button {
+  padding: 0.5rem 1rem;
+  background-color: #475569;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.minsa-logout-button:hover {
+  background-color: #334155;
+}
+
+/* Main Content Styles */
+.minsa-main-content {
+  padding: 1.5rem;
+}
+
+.minsa-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+/* Stats Grid */
+.minsa-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .minsa-stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.minsa-stat-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+}
+
+.minsa-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.minsa-stat-content {
+  padding: 1.5rem;
+}
+
+.minsa-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.minsa-stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.minsa-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.minsa-stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Trend positivo (verde) */
+.minsa-stat-trend.positive {
+  color: #059669;
+}
+
+/* Trend negativo (rojo) para Pacientes Hospitalizados */
+.minsa-stat-trend.negative {
+  color: #dc2626;
+}
+
+.minsa-trend-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Content Grid */
+.minsa-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .minsa-content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.minsa-main-card,
+.minsa-patterns-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+}
+
+.minsa-main-card:hover,
+.minsa-patterns-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.minsa-card-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Outbreak Alert Styles */
+.minsa-outbreak-alert {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background-color: white;
+  margin-bottom: 1rem;
+}
+
+.minsa-outbreak-alert:last-child {
+  margin-bottom: 0;
+}
+
+.minsa-alert-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.minsa-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.minsa-disease-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.minsa-details-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #2563eb;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.minsa-details-button:hover {
+  color: #1d4ed8;
+}
+
+.minsa-details-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.minsa-alert-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.minsa-location-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.minsa-alert-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.minsa-stat-item {
+  text-align: center;
+}
+
+.minsa-stat-label-small {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.minsa-stat-value-small {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.minsa-stat-value-small.trend-negative {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: #dc2626;
+}
+
+.minsa-anomaly-score {
+  background-color: #f1f5f9;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.minsa-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.minsa-score-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.minsa-score-value {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.minsa-score-bar {
+  width: 100%;
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.minsa-score-progress {
+  height: 100%;
+  background-color: #5E7A9C;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Patterns Styles */
+.minsa-patterns-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.minsa-pattern-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: white;
+}
+
+.minsa-pattern-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.minsa-pattern-location {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.minsa-pattern-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.minsa-pattern-progress-bar {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  height: 0.375rem;
+  overflow: hidden;
+}
+
+.minsa-pattern-progress {
+  height: 100%;
+  background-color: #5E7A9C;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.minsa-view-all-button {
+  width: 100%;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #2563eb;
+  background: none;
+  border: none;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.minsa-view-all-button:hover {
+  color: #1d4ed8;
+  background-color: #f8fafc;
+  border-radius: 0.375rem;
+}
+
+/* Agrega al final de MinsaDashboardPage.css */
+.minsa-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.minsa-logo-text {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e40af;
+  margin: 0;
+}
+
+.minsa-logo-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .minsa-header-content {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .minsa-nav {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .minsa-header-right {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .minsa-main-content {
+    padding: 1rem;
+  }
+
+  .minsa-title {
+    font-size: 1.5rem;
+  }
+
+  .minsa-alert-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .minsa-alert-stats {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

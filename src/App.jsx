@@ -17,13 +17,19 @@ import SeguimientoPage from "./components/Seguimiento";
 import ConfiguracionPage from "./components/Configuracion";
 import TeleconsultasList from "./components/TeleconsultasList";
 import { authService } from "./services/auth";
+import MinsaDashboardPage from "./components/MinsaDashboardPage";
+import MinsaLoginPage from "./components/MinsaLoginPage";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     authService.isAuthenticated()
   );
 
-  // Efecto para verificar autenticación al cargar y escuchar cambios
+  const [isMinsaAuthenticated, setIsMinsaAuthenticated] = useState(
+    authService.isAuthenticatedMinsa()
+  );
+
+  // Efecto para verificar autenticación de citas
   useEffect(() => {
     const checkAuth = () => {
       setIsAuthenticated(authService.isAuthenticated());
@@ -31,7 +37,6 @@ function App() {
     
     checkAuth();
     
-    // Escuchar el evento personalizado de cambio de autenticación
     const handleAuthChange = () => {
       checkAuth();
     };
@@ -45,6 +50,27 @@ function App() {
     };
   }, []);
 
+  // Efecto para verificar autenticación de MINSA
+  useEffect(() => {
+    const checkMinsaAuth = () => {
+      setIsMinsaAuthenticated(authService.isAuthenticatedMinsa());
+    };
+    
+    checkMinsaAuth();
+    
+    const handleMinsaAuthChange = () => {
+      checkMinsaAuth();
+    };
+    
+    window.addEventListener('authChange', handleMinsaAuthChange);
+    window.addEventListener('storage', handleMinsaAuthChange);
+    
+    return () => {
+      window.removeEventListener('authChange', handleMinsaAuthChange);
+      window.removeEventListener('storage', handleMinsaAuthChange);
+    };
+  }, []);
+
   const handleLogin = (userData) => {
     console.log("Usuario logueado: ", userData);
     setIsAuthenticated(true);
@@ -54,6 +80,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          {/* Rutas del Sistema de Citas */}
           <Route
             path="/login"
             element={
@@ -65,7 +92,6 @@ function App() {
             }
           />
           
-          {/* Rutas que usan la estructura completa del dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -79,7 +105,6 @@ function App() {
             }
           />
           
-          {/* Ruta de consulta presencial */}
           <Route
             path="/consulta/:patient"
             element={
@@ -93,7 +118,6 @@ function App() {
             }
           />
           
-          {/* Ruta para lista de teleconsultas */}
           <Route
             path="/teleconsultas"
             element={
@@ -107,7 +131,6 @@ function App() {
             }
           />
 
-          {/* Ruta para teleconsulta individual */}
           <Route
             path="/teleconsulta/:patient"
             element={
@@ -147,7 +170,6 @@ function App() {
             }
           />
           
-          {/* Ruta de seguimiento - IMPORTANTE: Ya está incluida en tu App.jsx */}
           <Route
             path="/seguimiento"
             element={
@@ -173,7 +195,31 @@ function App() {
               )
             }
           />
+
+          {/* Rutas para MINSA */}
+          <Route
+            path="/minsa/login"
+            element={
+              isMinsaAuthenticated ? (
+                <Navigate to="/minsa/dashboard" replace />
+              ) : (
+                <MinsaLoginPage />
+              )
+            }
+          />
+
+          <Route
+            path="/minsa/dashboard"
+            element={
+              isMinsaAuthenticated ? (
+                <MinsaDashboardPage />
+              ) : (
+                <Navigate to="/minsa/login" replace />
+              )
+            }
+          />
           
+          {/* Ruta por defecto */}
           <Route
             path="/"
             element={
