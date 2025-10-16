@@ -100,23 +100,20 @@ export default function MinsaDashboardPage() {
         <div className="minsa-header-content">
           <div className="minsa-header-left">
             <div className="minsa-logo-container">
-              <div className="minsa-logo-text">MINISTERIO DE SALUD</div>
-              <div className="minsa-logo-subtitle">Sistema de Vigilancia Epidemiológica</div>
+              <div className='minsa-logo-wrapper'>
+                <img  
+                  src='/minsa-logo.jpg'
+                  alt= "MINSA Logo"
+                  className='minsa-logo-img'
+                />
+              </div>
+    
             </div>
           </div>
           
           <nav className="minsa-nav">
             <a href="/minsa/dashboard" className="minsa-nav-link active">
               Inicio
-            </a>
-            <a href="/minsa/dashboard" className="minsa-nav-link">
-              Dashboard
-            </a>
-            <a href="#" className="minsa-nav-link">
-              Detección
-            </a>
-            <a href="#" className="minsa-nav-link">
-              Reportes
             </a>
             <a href="/minsa/integracion" className="minsa-nav-link">
               Integración comunitaria

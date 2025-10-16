@@ -378,23 +378,20 @@ export default function IntegracionComunitariaPage() {
         <div className="integracion-header-content">
           <div className="integracion-header-left">
             <div className="integracion-logo-container">
-              <div className="integracion-logo-text">MINISTERIO DE SALUD</div>
-              <div className="integracion-logo-subtitle">Sistema de Vigilancia Epidemiológica</div>
+              <div className="integracion-logo-wrapper">
+                <img 
+                  src="/minsa-logo.jpg" 
+                  alt="MINSA Logo" 
+                  className="integracion-logo-img"
+                />
+                
+              </div>
             </div>
-          </div>
+            </div>
           
           <nav className="integracion-nav">
             <a href="/minsa/dashboard" className="integracion-nav-link" onClick={handleGoToDashboard}>
               Inicio
-            </a>
-            <a href="/minsa/dashboard" className="integracion-nav-link" onClick={handleGoToDashboard}>
-              Dashboard
-            </a>
-            <a href="#" className="integracion-nav-link">
-              Detección
-            </a>
-            <a href="#" className="integracion-nav-link">
-              Reportes
             </a>
             <a href="/minsa/integracion" className="integracion-nav-link active">
               Integración comunitaria

@@ -68,8 +68,43 @@
   align-items: center;
 }
 
-.minsa-logo {
+/* Logo Styles - Igual que en Integración Comunitaria */
+.minsa-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.minsa-logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.minsa-logo-img {
+  width: 9.5rem;
+  height: 9.5rem;
   object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.minsa-logo-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.minsa-logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e40af;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.minsa-logo-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 .minsa-nav {
@@ -483,27 +518,16 @@
   border-radius: 0.375rem;
 }
 
-/* Agrega al final de MinsaDashboardPage.css */
-.minsa-logo-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.minsa-layout {
+  min-height: 100vh;
+  background-color: #f8fafc;
 }
 
-.minsa-logo-text {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #1e40af;
-  margin: 0;
+.minsa-content {
+  padding: 1.5rem;
 }
 
-.minsa-logo-subtitle {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Responsive Design */
+/* Responsive Design para el Logo */
 @media (max-width: 768px) {
   .minsa-header-content {
     flex-direction: column;
@@ -540,13 +564,39 @@
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
+
+  /* Responsive logo */
+  .minsa-logo-wrapper {
+    gap: 0.75rem;
+  }
+
+  .minsa-logo-img {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .minsa-logo-text {
+    font-size: 1.25rem;
+  }
 }
 
-.minsa-layout {
-  min-height: 100vh;
-  background-color: #f8fafc;
-}
+@media (max-width: 480px) {
+  .minsa-logo-wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
 
-.minsa-content {
-  padding: 1.5rem;
+  .minsa-logo-text-container {
+    align-items: center;
+  }
+
+  .minsa-logo-img {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .minsa-logo-text {
+    font-size: 1.125rem;
+  }
 }

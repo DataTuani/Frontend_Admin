@@ -90,7 +90,7 @@ export default function MinsaLoginPage() {
             </div>
           </div>
           <CardTitle>Iniciar Sesión</CardTitle>
-          <p className="minsa-login-subtitle">Sistema de Vigilancia Epidemiológica</p>
+          <p className="minsa-login-subtitle">Estadísticas de la Salud Nicaragüense</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="minsa-login-form">

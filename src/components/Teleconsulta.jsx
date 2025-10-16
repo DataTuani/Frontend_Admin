@@ -6,11 +6,22 @@ import { expedienteService } from '../services/expedienteService';
 import { citasService } from '../services/citas';
 import { authService } from '../services/auth';
 import Alert from './Alerta';
+import VideoCall from './VideoCall';
 
 export default function TeleConsulta() {
+    const handleLocalStream = (stream) => {
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+  };
+
+
     const { patient } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+
+    const roomId = location.state?.roomId || "default-room";
+
     const { cita, pacienteNombre, userId, pacienteId } = location.state || {};
 
     const nombre_doctor = authService.getUser()
@@ -81,6 +92,8 @@ export default function TeleConsulta() {
                 console.log('Obteniendo expediente para userId:', userIdToFetch);
                 const response = await expedienteService.getExpedienteByUserId(userIdToFetch);
                 console.log('Expediente obtenido:', response);
+
+                console.log('Room ID para la teleconsulta:', roomId);
                 
                 if (response.success && response.Expediente) {
                     setExpediente(response.Expediente);
@@ -576,58 +589,12 @@ export default function TeleConsulta() {
                         {/* Video Section */}
                         <div className="video-section">
                             <div className="video-container">
-                                <div className="video-placeholder">
-                                    <div className="patient-avatar-large">
-                                        <span className="avatar-text">
-                                            {patientData.initials}
-                                        </span>
-                                    </div>
-                                    <div className="patient-info-overlay">
-                                        {patientData.name}
-                                        <div className="patient-role">Paciente</div>
-                                    </div>
-                                </div>
+                                <VideoCall roomId={roomId} onLocalStream={handleLocalStream} />
 
                                 {/* Doctor's video feed (small) */}
-                                <div className="doctor-video-feed">
-                                    <div className="doctor-avatar-small">
-                                        <span className="avatar-text">CR</span>
-                                    </div>
-                                </div>
 
                                 {/* Video controls */}
-                                <div className="video-controls">
-                                    <button className="control-btn video-btn">
-                                        <svg className="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                            />
-                                        </svg>
-                                    </button>
-                                    <button className="control-btn audio-btn">
-                                        <svg className="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                                            />
-                                        </svg>
-                                    </button>
-                                    <button className="control-btn end-call-btn">
-                                        <svg className="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 3l1.5 1.5M21 21l-1.5-1.5m0 0L3 3m16.5 16.5L21 21M12 18l.5-1.5m-.5 1.5l-.5-1.5m.5 1.5V21m0-3l1.5-.5M12 18l-1.5-.5"
-                                            />
-                                        </svg>
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
 

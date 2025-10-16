@@ -75,20 +75,539 @@
 .integracion-logo-container {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;.integracion-comunitaria {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* Componentes base */
+.integracion-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.integracion-card-content {
+  padding: 1.5rem;
+}
+
+.integracion-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+}
+
+.integracion-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.integracion-button.outline {
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.integracion-button.sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.integracion-button.outline:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Header Styles */
+.integracion-header {
+  background-color: #DFF3FD;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.integracion-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 5rem;
+}
+
+.integracion-header-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Logo Styles */
+.integracion-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.integracion-logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.integracion-logo-img {
+  width: 9.5rem;
+  height: 9.5rem;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.integracion-logo-text-container {
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
 }
 
 .integracion-logo-text {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #1e40af;
-  margin: 0;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
 }
 
 .integracion-logo-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.integracion-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.integracion-nav-link {
+  color: #475569;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.integracion-nav-link:hover {
+  color: #334155;
+}
+
+.integracion-nav-link.active {
+  color: #1e40af;
+  border-bottom: 2px solid #1e40af;
+}
+
+.integracion-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.integracion-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.integracion-user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #1e40af;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.integracion-avatar-text {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.integracion-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.integracion-header-button {
+  padding: 0.5rem;
+  color: #64748b;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.integracion-header-button:hover {
+  color: #374151;
+  background-color: #f1f5f9;
+}
+
+.integracion-logout-button {
+  padding: 0.5rem 1rem;
+  background-color: #475569;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.integracion-logout-button:hover {
+  background-color: #334155;
+}
+
+/* Main Content Styles */
+.integracion-main-content {
+  padding: 1.5rem;
+}
+
+.integracion-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+/* Section Styles */
+.integracion-section {
+  margin-bottom: 1.5rem;
+}
+
+.integracion-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.integracion-accent-bar {
+  width: 3rem;
+  height: 0.25rem;
+  background-color: #ec4899;
+  border-radius: 0.125rem;
+}
+
+.integracion-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Tabs Styles */
+.integracion-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.integracion-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.integracion-tab:hover {
+  background-color: #f1f5f9;
+  color: #374151;
+}
+
+.integracion-tab.active {
+  background-color: #f1f5f9;
+  color: #374151;
+}
+
+.integracion-tab-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Grid Styles */
+.integracion-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .integracion-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .integracion-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Brigade Card Styles */
+.integracion-brigade-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.integracion-brigade-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.integracion-brigade-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.integracion-brigade-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.integracion-brigade-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.integracion-brigade-status {
   font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background-color: #10b981;
+}
+
+.status-completed {
+  background-color: #6b7280;
+}
+
+.status-scheduled {
+  background-color: #f59e0b;
+}
+
+.integracion-brigade-id {
+  font-size: 0.875rem;
   color: #64748b;
   margin: 0;
+}
+
+.integracion-brigade-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.integracion-info-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.integracion-brigade-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.integracion-stat {
+  text-align: left;
+}
+
+.integracion-stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.integracion-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Progress Bar Styles */
+.integracion-progress {
+  margin-top: 0.5rem;
+}
+
+.integracion-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.integracion-progress-label {
+  color: #64748b;
+}
+
+.integracion-progress-value {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.integracion-progress-bar {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.integracion-progress-fill {
+  height: 100%;
+  background-color: #2563eb;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Brigade Actions Styles */
+.integracion-brigade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .integracion-header-content {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .integracion-nav {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .integracion-header-right {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .integracion-main-content {
+    padding: 1rem;
+  }
+
+  .integracion-title {
+    font-size: 1.5rem;
+  }
+
+  .integracion-tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .integracion-brigade-actions {
+    flex-direction: column;
+  }
+
+  .integracion-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Responsive logo */
+  .integracion-logo-wrapper {
+    gap: 0.75rem;
+  }
+
+  .integracion-logo-img {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .integracion-logo-text {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .integracion-logo-wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .integracion-logo-text-container {
+    align-items: center;
+  }
+
+  .integracion-logo-img {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .integracion-logo-text {
+    font-size: 1.125rem;
+  }
+}
+
+.integracion-empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.integracion-empty-state h3 {
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+}
+
+.integracion-logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e40af;
+  margin-bottom: 0.5rem;
+}
+
+.integracion-logo-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
 .integracion-nav {
