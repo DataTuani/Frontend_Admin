@@ -5,6 +5,7 @@
   position: relative;
 }
 
+/* Sidebar para desktop - SIEMPRE VISIBLE en desktop */
 .sidebar {
   width: 16rem;
   background-color: white;
@@ -122,11 +123,12 @@
   font-weight: 500;
 }
 
-/* Main Content */
+/* Main Content para desktop - con margen para el sidebar */
 .expediente-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Header Styles */
@@ -209,6 +211,7 @@
   cursor: pointer;
   border-radius: 0.375rem;
   transition: all 0.2s;
+  display: none; /* Oculto en desktop */
 }
 
 .header-button:hover {
@@ -223,8 +226,8 @@
   flex: 1;
   max-width: 100%;
   overflow-x: hidden;
-  height: calc(100vh - 4rem); /* Ajustar altura considerando el header */
-  overflow-y: auto; /* Permitir scroll solo en el contenido */
+  height: calc(100vh - 4rem);
+  overflow-y: auto;
 }
 
 .content-layout {
@@ -232,17 +235,16 @@
   gap: 1.5rem;
   height: 100%;
   width: 100%;
-  min-height: calc(100vh - 7rem); /* Header + padding */
+  min-height: calc(100vh - 7rem);
 }
 
 /* Patients Sidebar */
 .patients-sidebar {
   width: 32rem;
   flex-shrink: 0;
-  height: calc(100vh - 7rem); /* Altura ajustada */
-  overflow-y: auto; /* Scroll interno si es necesario */
+  height: calc(100vh - 7rem);
+  overflow-y: auto;
 }
-
 
 .patients-card {
   background-color: white;
@@ -275,8 +277,8 @@
 .patient-item {
   display: flex;
   align-items: center;
-  gap: 1rem; /* Aumentado de 0.75rem a 1rem */
-  padding: 1rem; /* Aumentado de 0.75rem a 1rem */
+  gap: 1rem;
+  padding: 1rem;
   border-radius: 0.5rem;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -292,15 +294,15 @@
 }
 
 .patient-avatar {
-  width: 3rem; /* Aumentado de 2.5rem a 3rem */
-  height: 3rem; /* Aumentado de 2.5rem a 3rem */
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   color: white;
-  flex-shrink: 0; /* Evita que se reduzca */
+  flex-shrink: 0;
 }
 
 .patient-pink {
@@ -316,20 +318,20 @@
 }
 
 .patient-initials {
-  font-size: 1rem; /* Aumentado de 0.875rem a 1rem */
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .patient-info {
   flex: 1;
-  min-width: 0; /* Permite que el texto se ajuste */
+  min-width: 0;
 }
 
 .patient-name {
   font-weight: 500;
   color: #1f2937;
   margin: 0;
-  font-size: 1rem; /* Aumentado ligeramente */
+  font-size: 1rem;
   line-height: 1.4;
 }
 
@@ -348,8 +350,8 @@
   gap: 1.5rem;
   min-width: 0;
   max-width: calc(100% - 33.5rem);
-  height: calc(100vh - 7rem); /* Altura ajustada */
-  overflow-y: auto; /* Scroll interno si es necesario */
+  height: calc(100vh - 7rem);
+  overflow-y: auto;
 }
 
 .info-card,
@@ -428,9 +430,8 @@
 .data-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem; /* Reducido de 1.5rem a 1rem */
+  gap: 1rem;
 }
-
 
 .data-field {
   display: flex;
@@ -712,81 +713,6 @@
   margin: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .expediente-container {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: -100%;
-    height: 100%;
-    z-index: 50;
-    transition: left 0.3s;
-  }
-  
-  .sidebar-open .sidebar {
-    left: 0;
-  }
-  
-  .expediente-main {
-    margin-left: 0;
-  }
-  
-  .content-layout {
-    flex-direction: column;
-  }
-  
-  .patients-sidebar {
-    width: 100%;
-  }
-  
-  .data-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .medications-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .documents-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .prescription-item {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .prescription-actions {
-    justify-content: center;
-  }
-  
-  .history-item {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .history-info {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .user-name {
-    display: none;
-  }
-  
-  .expediente-content {
-    height: auto;
-    overflow-y: visible;
-  }
-}
-
 /* Estilos adicionales */
 .loading-container {
   display: flex;
@@ -844,18 +770,6 @@
   font-style: italic;
 }
 
-/* Mejoras responsive */
-@media (max-width: 768px) {
-  .data-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .allergies-list,
-  .conditions-list {
-    justify-content: center;
-  }
-}
-
 /* Estilos para paginación */
 .pagination-container {
   display: flex;
@@ -910,55 +824,77 @@
   background-color: white;
 }
 
-@media (max-width: 1024px) {
-  .patients-sidebar {
-    width: 26rem;
-  }
-  
-  .main-content-area {
-    max-width: calc(100% - 27.5rem);
-  }
-  
-  .data-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
+/* Overlay para el sidebar móvil */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 45;
 }
 
-/* Ajustes responsive para móviles (mantener igual) */
+.sidebar-open .sidebar-overlay {
+  display: block;
+}
+
+/* ============================ */
+/* RESPONSIVE DESIGN - MÓVILES  */
+/* ============================ */
+
 @media (max-width: 768px) {
   .expediente-container {
     flex-direction: column;
   }
   
+  /* Sidebar oculto por defecto en móviles */
   .sidebar {
     width: 100%;
     position: fixed;
     top: 0;
-    left: -100%;
+    left: -100%; /* Oculto por defecto */
     height: 100%;
     z-index: 50;
     transition: left 0.3s;
   }
   
+  /* Cuando el sidebar está abierto en móviles */
   .sidebar-open .sidebar {
     left: 0;
   }
   
+  /* En móviles, el main no tiene margen */
   .expediente-main {
     margin-left: 0;
+    width: 100%;
+  }
+  
+  /* Mostrar botón de menú en móviles */
+  .header-button {
+    display: block;
   }
   
   .content-layout {
     flex-direction: column;
+    height: auto;
+    min-height: auto;
+    gap: 1rem;
   }
   
   .patients-sidebar {
     width: 100%;
+    height: auto;
+    max-height: 50vh;
+    overflow-y: auto;
   }
   
   .main-content-area {
     max-width: 100%;
+    height: auto;
+    overflow-y: visible;
+    min-height: 50vh;
   }
   
   .data-grid {
@@ -976,22 +912,31 @@
   .prescription-item {
     flex-direction: column;
     gap: 1rem;
-    text-align: center;
+    text-align: left;
+    align-items: flex-start;
   }
   
   .prescription-actions {
-    justify-content: center;
+    width: 100%;
+    justify-content: space-between;
   }
   
   .history-item {
     flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
   }
   
   .history-info {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+  
+  .history-details {
+    width: 100%;
   }
   
   .user-name {
@@ -999,12 +944,127 @@
   }
   
   .expediente-content {
+    height: auto;
+    overflow-y: visible;
     padding: 1rem;
   }
-  
+
+  /* Asegurar que todas las cards sean visibles */
+  .info-card,
+  .history-card,
+  .documents-card {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  /* Asegurar que el contenido del historial sea visible */
+  .history-list {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  /* Ajustar la paginación para móviles */
   .pagination-container {
     flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+
+  .pagination-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Asegurar que los datos del paciente sean legibles */
+  .view-buttons {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .view-button {
+    flex: 1;
+    min-width: 140px;
     text-align: center;
+  }
+
+  /* Ajustar el formulario de nuevas prescripciones */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  /* Asegurar que los textos sean legibles en móviles */
+  .patient-name {
+    font-size: 1rem;
+  }
+
+  .patient-age,
+  .patient-folio {
+    font-size: 0.8rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .field-label,
+  .field-value {
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================ */
+/* RESPONSIVE DESIGN - TABLETS  */
+/* ============================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .patients-sidebar {
+    width: 28rem;
+  }
+  
+  .main-content-area {
+    max-width: calc(100% - 29.5rem);
+  }
+  
+  .data-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+/* Scroll suave para el contenido principal */
+.expediente-content {
+  scroll-behavior: smooth;
+}
+
+.history-card .card-content {
+  min-height: 150px;
+}
+
+/* Asegurar que los elementos del sidebar sean accesibles en móviles */
+@media (max-width: 768px) {
+  .nav-text,
+  .logout-text {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .sidebar-nav .nav-item,
+  .logout-btn {
+    opacity: 1;
+    pointer-events: all;
   }
 }

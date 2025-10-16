@@ -289,6 +289,14 @@ export default function ExpedientePage() {
         </div>
       </div>
 
+      {/* Overlay para móviles */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Main Content */}
       <div className="expediente-main">
         {/* Header */}
