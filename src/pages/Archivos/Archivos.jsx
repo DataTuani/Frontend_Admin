@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../services/auth';
-import { ordenesLabService } from '../services/ordenesLabService';
+import { authService } from '../../hooks/auth';
+import { ordenesLabService } from '../../services/ordenesLabService';
 import './Archivos.css';
-import Alert from './Alerta';
+import Alert from '../../components/ui/Alerta';
 
 export default function ArchivosPage() {
   const location = useLocation();

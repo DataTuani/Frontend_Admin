@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../hooks/api';
 
 export const citasService = {
   getCitasByDoctor: async (personalId) => {

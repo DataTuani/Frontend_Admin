@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 import './IntegracionComunitariaPage.css';
 
 // Componentes simples para reemplazar los de shadcn/ui

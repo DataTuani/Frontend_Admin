@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Configuracion.css';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 
 // Componentes simples para reemplazar los de shadcn/ui
 const Card = ({ children, className = '' }) => (

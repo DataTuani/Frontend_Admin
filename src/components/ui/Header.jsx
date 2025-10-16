@@ -1,6 +1,6 @@
 import React from 'react';
 import './Header.css';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 
 export default function Header() {
   const nombre_completo_usuaro = authService.getUser()

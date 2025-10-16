@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../services/auth';
-import { expedienteService } from '../services/expedienteService';
+import { authService } from '../../hooks/auth';
+import { expedienteService } from '../../services/expedienteService';
 import './Expediente.css';
 
 export default function ExpedientePage() {

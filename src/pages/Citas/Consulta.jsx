@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import './Consulta.css';
-import Sidebar from './Sidebar';
-import { expedienteService } from '../services/expedienteService';
-import { citasService } from '../services/citas';
-import { authService } from '../services/auth';
-import Alert from './Alerta';
+import Sidebar from '../../components/ui/Sidebar';
+import { expedienteService } from '../../services/expedienteService';
+import { citasService } from '../../services/citas';
+import { authService } from '../../hooks/auth';
+import Alert from '../../components/ui/Alerta';
 
 export default function ConsultationPage() {
     const nombre_completo_usuaro = authService.getUser()

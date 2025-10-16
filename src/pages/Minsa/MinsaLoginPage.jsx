@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 import './MinsaLoginPage.css';
 
 // Componentes simples (fuera del componente para mejor rendimiento)

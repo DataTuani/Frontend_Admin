@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import { citasService } from '../services/citas';
-import { authService } from '../services/auth';
+import Sidebar from '../../components/ui/Sidebar';
+import { citasService } from '../../services/citas';
+import { authService } from '../../hooks/auth';
 import './TeleconsultasList.css';
 
 export default function TeleconsultasList() {

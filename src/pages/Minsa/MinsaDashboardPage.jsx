@@ -1,5 +1,5 @@
 import React from 'react';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 import './MinsaDashboardPage.css';
 
 // Componentes simples (fuera del componente)

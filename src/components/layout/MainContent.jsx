@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { citasService } from '../services/citas';
-import { authService } from '../services/auth';
+import { citasService } from '../../services/citas';
+import { authService } from '../../hooks/auth';
 import './MainContent.css';
 
 export default function MainContent() {

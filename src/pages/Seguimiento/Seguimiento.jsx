@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 import './Seguimiento.css';
 
 export default function SeguimientoPage() {

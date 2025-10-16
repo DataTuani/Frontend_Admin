@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import MainContent from './MainContent';
-import RightSidebar from './RightSidebar';
+import Sidebar from '../../components/ui/Sidebar';
+import Header from '../../components/ui/Header';
+import MainContent from '../../components/layout/MainContent';
+import RightSidebar from '../../components/layout/RightSidebar';
 import './Dashboard.css';
 
 export default function DashboardPage() {

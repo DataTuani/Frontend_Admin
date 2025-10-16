@@ -5,21 +5,21 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import LoginPage from "./components/Login";
-import DashboardPage from "./components/Dashboard";
-import ConsultaPage from "./components/Consulta";
-import Layout from "./components/Layout";
+import LoginPage from "./pages/Login/Login";
+import DashboardPage from "./pages/Dashboard/Dashboard";
+import ConsultaPage from "./pages/Citas/Consulta";
+import Layout from "./components/layout/Layout";
 import "./App.css";
-import TeleConsulta from "./components/Teleconsulta";
-import ExpedientePage from "./components/Expediente";
-import ArchivosPage from "./components/Archivos";
-import SeguimientoPage from "./components/Seguimiento";
-import ConfiguracionPage from "./components/Configuracion";
-import TeleconsultasList from "./components/TeleconsultasList";
-import { authService } from "./services/auth";
-import MinsaDashboardPage from "./components/MinsaDashboardPage";
-import MinsaLoginPage from "./components/MinsaLoginPage";
-import IntegracionComunitariaPage from "./components/IntegracionComunitariaPage"; // Nueva importación
+import TeleConsulta from "./pages/Teleconsultas/Teleconsulta";
+import ExpedientePage from "./pages/Expedientes/Expediente";
+import ArchivosPage from "./pages/Archivos/Archivos";
+import SeguimientoPage from "./pages/Seguimiento/Seguimiento";
+import ConfiguracionPage from "./pages/Configuracion/Configuracion";
+import TeleconsultasList from "./pages/Teleconsultas/TeleconsultasList";
+import { authService } from "./hooks/auth";
+import MinsaDashboardPage from "./pages/Minsa/MinsaDashboardPage";
+import MinsaLoginPage from "./pages/Minsa/MinsaLoginPage";
+import IntegracionComunitariaPage from "./pages/Minsa/IntegracionComunitariaPage"; // Nueva importación
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(

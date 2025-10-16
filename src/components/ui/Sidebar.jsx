@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
-import { authService } from '../services/auth';
+import { authService } from '../../hooks/auth';
 
 export default function Sidebar() {
   const location = useLocation();
