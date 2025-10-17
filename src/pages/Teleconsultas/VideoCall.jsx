@@ -4,7 +4,8 @@ import io from "socket.io-client";
 // Conexión a tu servidor
 const socket = io("https://sinaes.up.railway.app");
 
-export default function VideoCall({ roomId }) {
+// nuevo cambio, le dimos una clase
+export default function VideoCall({ roomId, className="" }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
@@ -133,49 +134,22 @@ export default function VideoCall({ roomId }) {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <div
-        style={{
-          width: "100%",
-          height: "72vh", 
-          position: "relative",
-          backgroundColor: "#000",
-          overflow: "hidden", 
-          zIndex: 1,
-        }}
-      >
-        {/* Video remoto */}
-        <video
-          ref={remoteVideoRef}
-          autoPlay
-          playsInline
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            backgroundColor: "#000",
-          }}
-        />
+    <div className={`video-call-container ${className}`}>
+      <video
+        ref={remoteVideoRef}
+        autoPlay
+        playsInline
+        className="remote-video"
+      />
 
-        {/* Video local en PIP */}
-        <video
-          ref={localVideoRef}
-          autoPlay
-          playsInline
-          muted
-          style={{
-            position: "absolute",
-            bottom: "16px",
-            right: "16px",
-            width: "200px",
-            height: "120px",
-            objectFit: "cover",
-            border: "2px solid white",
-            borderRadius: "8px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.4)",
-          }}
-        />
-      </div>
+      {/* Video local en PIP */}
+      <video
+        ref={localVideoRef}
+        autoPlay
+        playsInline
+        muted
+        className="local-video-pip"
+      />
     </div>
   );
 }

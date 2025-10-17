@@ -588,14 +588,11 @@ export default function TeleConsulta() {
                     <div className="teleconsulta-main">
                         {/* Video Section */}
                         <div className="video-section">
-                            <div className="video-container">
                                 <VideoCall roomId={roomId} onLocalStream={handleLocalStream} />
 
                                 {/* Doctor's video feed (small) */}
 
                                 {/* Video controls */}
-
-                            </div>
                         </div>
 
                         {/* Consultation Form - Exactamente igual que en Consulta.jsx */}
