@@ -1,110 +1,119 @@
 import React, { useEffect, useRef } from "react";
 import io from "socket.io-client";
 
-// Conexión a tu servidor
-const socket = io("https://sinaes.up.railway.app");
+// Cambia la URL según tu backend
+const socket = io("https://sinaes.up.railway.app", {
+  transports: ["websocket"], // Evita errores CORS o transporte desconocido
+});
 
-// nuevo cambio, le dimos una clase
-export default function VideoCall({ roomId, className="" }) {
+export default function VideoCall({ roomId, className = "" }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
+  const isOffererRef = useRef(false); // 👈 detecta quién crea el offer
 
   useEffect(() => {
     const init = async () => {
       try {
-        // 1️⃣ Pedir permisos de cámara/micrófono
+        console.log("🎥 Solicitando permisos...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
-        localVideoRef.current.srcObject = stream;
         localStreamRef.current = stream;
+        localVideoRef.current.srcObject = stream;
 
-        // 2️⃣ Crear RTCPeerConnection
+        await localVideoRef.current.play().catch(() => {
+          console.warn("Esperando interacción del usuario para reproducir video local");
+        });
+
+        // 🔧 Crear conexión con STUN y TURN
         const pc = new RTCPeerConnection({
-          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            {
+              urls: [
+                "stun:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp",
+              ],
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+          ],
         });
         pcRef.current = pc;
 
-        // 3️⃣ Agregar tracks locales
+        // Agregar tracks locales
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-        // 4️⃣ Cuando llegue track remoto
+        // Cuando llega stream remoto
         pc.ontrack = (event) => {
+          console.log("📡 Recibiendo video remoto...");
           remoteVideoRef.current.srcObject = event.streams[0];
+          remoteVideoRef.current.play().catch(() => {
+            console.warn("Esperando interacción del usuario para reproducir video remoto");
+          });
         };
 
-        // 5️⃣ Manejar ICE candidates locales
+        // Enviar candidatos ICE locales
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            socket.emit("ice-candidate", {
-              roomId,
-              candidate: event.candidate,
-            });
+            socket.emit("ice-candidate", { roomId, candidate: event.candidate });
           }
         };
 
-        // 6️⃣ Unirse a la sala
+        // 🔹 Unirse a la sala
         socket.emit("join-room", { roomId });
 
-        // 7️⃣ Recibir offer
+        // 🔹 El servidor avisa cuando otro usuario entra
+        socket.on("ready", async () => {
+          console.log("✅ Otro usuario se unió, creando offer...");
+          isOffererRef.current = true;
+          await createOffer();
+        });
+
+        // 📩 Recibir offer
         socket.on("offer", async ({ offer }) => {
           const pc = pcRef.current;
-          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+          if (pc.signalingState !== "stable") {
+            console.warn("⚠ Ignorando offer porque el estado no es estable");
+            return;
+          }
 
+          console.log("📩 Offer recibida, creando answer...");
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           socket.emit("answer", { roomId, answer });
-
-          // Procesar ICE candidates pendientes
-          for (const c of pendingCandidatesRef.current) {
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(c));
-            } catch (err) {
-              console.error("Error agregando ICE candidate pendiente:", err);
-            }
-          }
-          pendingCandidatesRef.current = [];
         });
 
-        // 8️⃣ Recibir answer
+        // 📩 Recibir answer
         socket.on("answer", async ({ answer }) => {
           const pc = pcRef.current;
-          if (answer && answer.type && answer.sdp) {
+          if (pc.signalingState === "have-local-offer") {
             await pc.setRemoteDescription(new RTCSessionDescription(answer));
-
-            // Procesar ICE candidates pendientes
-            for (const c of pendingCandidatesRef.current) {
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(c));
-              } catch (err) {
-                console.error("Error agregando ICE candidate pendiente:", err);
-              }
-            }
-            pendingCandidatesRef.current = [];
+            console.log("📩 Answer aplicada correctamente");
+          } else {
+            console.warn("⚠ Ignorando answer, estado actual:", pc.signalingState);
           }
         });
 
-        // 9️⃣ Recibir ICE candidates remotos
+        // ❄ Recibir ICE candidate remoto
         socket.on("ice-candidate", async ({ candidate }) => {
-          if (!candidate || !candidate.candidate) return;
+          if (!candidate) return;
           const pc = pcRef.current;
-          if (pc && pc.remoteDescription) {
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (err) {
-              console.error("Error agregando ICE candidate:", err);
-            }
-          } else {
-            // Guardar para después
-            pendingCandidatesRef.current.push(candidate);
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (err) {
+            console.error("Error agregando ICE candidate:", err);
           }
         });
       } catch (err) {
-        console.error("❌ Error iniciando cámara/micrófono:", err);
+        console.error("❌ Error accediendo a cámara/micrófono:", err);
         alert("No se pudo acceder a cámara o micrófono. Revisa permisos.");
       }
     };
@@ -112,22 +121,23 @@ export default function VideoCall({ roomId, className="" }) {
     init();
 
     return () => {
-      // Limpiar al salir
       if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track) => track.stop());
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
       }
-      if (pcRef.current) {
-        pcRef.current.close();
-      }
+      if (pcRef.current) pcRef.current.close();
       socket.off();
     };
-  }, []);
+  }, [roomId]);
 
-  // Iniciar llamada: crear offer
-  const startCall = async () => {
+  // 📞 Crear offer solo si el peer es offerer
+  const createOffer = async () => {
     const pc = pcRef.current;
-    if (!pc) return;
+    if (!pc || pc.signalingState !== "stable") {
+      console.warn("⏸ No se puede crear offer en estado:", pc?.signalingState);
+      return;
+    }
 
+    console.log("📞 Creando offer...");
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     socket.emit("offer", { roomId, offer });
@@ -142,7 +152,6 @@ export default function VideoCall({ roomId, className="" }) {
         className="remote-video"
       />
 
-      {/* Video local en PIP */}
       <video
         ref={localVideoRef}
         autoPlay
