@@ -6,11 +6,12 @@ export default defineConfig({
   server: {
     host: true,
   },
-  // Añade esta configuración para el build
   build: {
     outDir: 'dist',
     sourcemap: false
   },
-  // Importante para las rutas en producción
+  // Para producción - importante que sea './' para que funcione en subrutas
   base: './'
+  // agregale conf de rutas que cominenzan  con /minsa para que se puedan ver
+  
 })

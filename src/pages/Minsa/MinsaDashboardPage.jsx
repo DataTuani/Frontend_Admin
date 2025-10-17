@@ -1,5 +1,6 @@
 import React from 'react';
 import { authService } from '../../hooks/auth';
+import { useNavigate } from 'react-router-dom';
 import './MinsaDashboardPage.css';
 
 // Componentes simples (fuera del componente)
@@ -29,14 +30,17 @@ export default function MinsaDashboardPage() {
     ? `${minsaUser.primer_nombre} ${minsaUser.primer_apellido}`
     : 'Usuario MINSA';
 
+    const navigate = useNavigate();
+
   const handleLogout = () => {
     authService.logoutMinsa();
-    window.location.href = '/minsa/login';
+    navigate('/login');
   };
+
 
   const handleGoToCitas = () => {
     authService.logoutMinsa();
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   // Datos para las tarjetas de estadísticas
@@ -112,10 +116,10 @@ export default function MinsaDashboardPage() {
           </div>
           
           <nav className="minsa-nav">
-            <a href="/minsa/dashboard" className="minsa-nav-link active">
+            <a href="/dashboard" className="minsa-nav-link active">
               Inicio
             </a>
-            <a href="/minsa/integracion" className="minsa-nav-link">
+            <a href="/integracion" className="minsa-nav-link">
               Integración comunitaria
             </a>
           </nav>

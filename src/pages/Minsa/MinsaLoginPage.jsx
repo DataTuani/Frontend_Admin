@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../../hooks/auth';
+import { useNavigate } from 'react-router-dom';
 import './MinsaLoginPage.css';
 
 const Card = ({ children, className = '' }) => (
@@ -38,6 +39,7 @@ export default function MinsaLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -53,7 +55,7 @@ export default function MinsaLoginPage() {
       };
 
       authService.loginMinsa('fake-token-minsa-' + Date.now(), userData);
-      window.location.href = '/minsa/dashboard';
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error en login:', error);
       alert('Error al iniciar sesión. Intente nuevamente.');
@@ -63,7 +65,7 @@ export default function MinsaLoginPage() {
   };
 
   const handleGoToCitas = () => {
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   return (
@@ -125,14 +127,9 @@ export default function MinsaLoginPage() {
             </Button>
           </form>
 
+          {/*
+          
           <div className="minsa-login-actions">
-            <button
-              onClick={handleGoToCitas}
-              className="minsa-go-to-citas"
-              disabled={isLoading}
-            >
-              Ir al Sistema de Citas
-            </button>
 
             <div className="minsa-demo-credentials">
               <p>Credenciales de demostración:</p>
@@ -140,6 +137,8 @@ export default function MinsaLoginPage() {
               <p>Contraseña: <strong>cualquier texto</strong></p>
             </div>
           </div>
+           */}
+
         </CardContent>
       </Card>
     </div>

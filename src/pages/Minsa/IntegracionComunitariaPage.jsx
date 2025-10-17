@@ -390,10 +390,10 @@ export default function IntegracionComunitariaPage() {
             </div>
           
           <nav className="integracion-nav">
-            <a href="/minsa/dashboard" className="integracion-nav-link" onClick={handleGoToDashboard}>
+            <a href="/dashboard" className="integracion-nav-link" onClick={handleGoToDashboard}>
               Inicio
             </a>
-            <a href="/minsa/integracion" className="integracion-nav-link active">
+            <a href="/integracion" className="integracion-nav-link active">
               Integración comunitaria
             </a>
           </nav>
