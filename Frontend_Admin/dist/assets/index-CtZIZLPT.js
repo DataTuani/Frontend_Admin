@@ -18020,7 +18020,7 @@ function ConsultationPage() {
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "header-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "user-info", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "user-avatar", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "avatar-text", children: C }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "user-avatar", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "avatar-text", children: "C" }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "user-name", children: nombre_completo_usuaro })
         ] }) })
       ] }) }),

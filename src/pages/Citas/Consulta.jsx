@@ -534,8 +534,7 @@ const handleSaveConsultation = async () => {
                         <div className="header-right">
                             <div className="user-info">
                                 <div className="user-avatar">
-            
-                                    <span className="avatar-text">{C}</span>
+                                    <span className="avatar-text">C</span>
                                 </div>
                                 <span className="user-name">{nombre_completo_usuaro}</span>
                             </div>
