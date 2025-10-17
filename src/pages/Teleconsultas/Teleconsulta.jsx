@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
-import './TeleConsulta.css';
+import './Teleconsulta.css';
 import Sidebar from '../../components/ui/Sidebar';
 import { expedienteService } from '../../services/expedienteService';
 import { citasService } from '../../services/citas';
@@ -1040,52 +1040,7 @@ export default function TeleConsulta() {
                             </div>
                         </div>
 
-                        {/* Chat Sidebar */}
-                        <div className="chat-container">
-                            <div className="chat-header">
-                                <h3 className="chat-title">
-                                    <svg className="chat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                        />
-                                    </svg>
-                                    Chat de la consulta
-                                </h3>
-                            </div>
-                            <div className="chat-messages">
-                                {chatMessages.map((msg, index) => (
-                                    <div key={index}>
-                                        {index === 0 && <div className="message-time">15:05</div>}
-                                        <div className={`message ${msg.sender}-message`}>
-                                            <div className="message-content">{msg.message}</div>
-                                            {msg.sender === 'doctor' && <div className="message-time">15:06</div>}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="chat-input-container">
-                                <input
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder="Escribir mensaje..."
-                                    className="chat-input"
-                                    onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                                />
-                                <button onClick={sendMessage} className="send-button">
-                                    <svg className="send-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
 
