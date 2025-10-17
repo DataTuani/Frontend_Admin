@@ -6,11 +6,9 @@ export default defineConfig({
   server: {
     host: true,
   },
-  // Añade esta configuración para el build
   build: {
     outDir: 'dist',
     sourcemap: false
   },
-  // Importante para las rutas en producción
   base: './'
 })

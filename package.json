@@ -8,8 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && vercel --prod"
-
+    "prebuild": "npm install",
+    "netlify-build": "npm install && npm run build"
   },
   "dependencies": {
     "axios": "^1.12.2",
