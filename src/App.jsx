@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation
 } from "react-router-dom";
 import LoginPage from "./pages/Login/Login";
 import DashboardPage from "./pages/Dashboard/Dashboard";
@@ -19,9 +20,10 @@ import TeleconsultasList from "./pages/Teleconsultas/TeleconsultasList";
 import { authService } from "./hooks/auth";
 import MinsaDashboardPage from "./pages/Minsa/MinsaDashboardPage";
 import MinsaLoginPage from "./pages/Minsa/MinsaLoginPage";
-import IntegracionComunitariaPage from "./pages/Minsa/IntegracionComunitariaPage"; // Nueva importación
+import IntegracionComunitariaPage from "./pages/Minsa/IntegracionComunitariaPage";
 
-function App() {
+// Componente para manejar la autenticación
+function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     authService.isAuthenticated()
   );
@@ -78,171 +80,191 @@ function App() {
   };
 
   return (
+    <Routes>
+      {/* Rutas del Sistema de Citas */}
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <LoginPage onLogin={handleLogin} />
+          )
+        }
+      />
+      
+      <Route
+        path="/dashboard"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <DashboardPage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/consulta/:patient"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <ConsultaPage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/teleconsultas"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <TeleconsultasList />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/teleconsulta/:patient"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <TeleConsulta />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/expediente"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <ExpedientePage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/archivos"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <ArchivosPage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/seguimiento"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <SeguimientoPage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      
+      <Route
+        path="/configuracion"
+        element={
+          isAuthenticated ? (
+            <Layout isAuthenticated={isAuthenticated}>
+              <ConfiguracionPage />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      {/* Rutas para MINSA */}
+      <Route
+        path="/minsa/login"
+        element={
+          isMinsaAuthenticated ? (
+            <Navigate to="/minsa/dashboard" replace />
+          ) : (
+            <MinsaLoginPage />
+          )
+        }
+      />
+
+      <Route
+        path="/minsa/dashboard"
+        element={
+          isMinsaAuthenticated ? (
+            <MinsaDashboardPage />
+          ) : (
+            <Navigate to="/minsa/login" replace />
+          )
+        }
+      />
+
+      {/* Nueva ruta para Integración Comunitaria */}
+      <Route
+        path="/minsa/integracion"
+        element={
+          isMinsaAuthenticated ? (
+            <IntegracionComunitariaPage />
+          ) : (
+            <Navigate to="/minsa/login" replace />
+          )
+        }
+      />
+      
+      {/* Ruta por defecto */}
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to={isAuthenticated ? "/dashboard" : "/login"}
+            replace
+          />
+        }
+      />
+      
+      {/* Ruta de fallback para 404 */}
+      <Route
+        path="*"
+        element={
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <h1>404 - Página no encontrada</h1>
+            <p>La página que buscas no existe.</p>
+            <button onClick={() => window.location.href = '/'}>
+              Volver al inicio
+            </button>
+          </div>
+        }
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
     <Router>
       <div className="App">
-        <Routes>
-          {/* Rutas del Sistema de Citas */}
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <LoginPage onLogin={handleLogin} />
-              )
-            }
-          />
-          
-          <Route
-            path="/dashboard"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <DashboardPage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/consulta/:patient"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <ConsultaPage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/teleconsultas"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <TeleconsultasList />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/teleconsulta/:patient"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <TeleConsulta />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/expediente"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <ExpedientePage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/archivos"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <ArchivosPage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/seguimiento"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <SeguimientoPage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          
-          <Route
-            path="/configuracion"
-            element={
-              isAuthenticated ? (
-                <Layout isAuthenticated={isAuthenticated}>
-                  <ConfiguracionPage />
-                </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          {/* Rutas para MINSA */}
-          <Route
-            path="/minsa/login"
-            element={
-              isMinsaAuthenticated ? (
-                <Navigate to="/minsa/dashboard" replace />
-              ) : (
-                <MinsaLoginPage />
-              )
-            }
-          />
-
-          <Route
-            path="/minsa/dashboard"
-            element={
-              isMinsaAuthenticated ? (
-                <MinsaDashboardPage />
-              ) : (
-                <Navigate to="/minsa/login" replace />
-              )
-            }
-          />
-
-          {/* Nueva ruta para Integración Comunitaria */}
-          <Route
-            path="/minsa/integracion"
-            element={
-              isMinsaAuthenticated ? (
-                <IntegracionComunitariaPage />
-              ) : (
-                <Navigate to="/minsa/login" replace />
-              )
-            }
-          />
-          
-          {/* Ruta por defecto */}
-          <Route
-            path="/"
-            element={
-              <Navigate
-                to={isAuthenticated ? "/dashboard" : "/login"}
-                replace
-              />
-            }
-          />
-        </Routes>
+        <AppRoutes />
       </div>
     </Router>
   );
