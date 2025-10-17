@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { authService } from '../../hooks/auth';
 import './MinsaLoginPage.css';
 
-// Componentes simples (fuera del componente para mejor rendimiento)
 const Card = ({ children, className = '' }) => (
   <div className={`minsa-login-card ${className}`}>{children}</div>
 );
@@ -45,15 +44,14 @@ export default function MinsaLoginPage() {
     setIsLoading(true);
 
     try {
-      // Simulamos una autenticación exitosa después de un breve delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const userData = {
         primer_nombre: 'MINSA',
         primer_apellido: 'Usuario',
         username: username
       };
-      
+
       authService.loginMinsa('fake-token-minsa-' + Date.now(), userData);
       window.location.href = '/minsa/dashboard';
     } catch (error) {
@@ -84,7 +82,7 @@ export default function MinsaLoginPage() {
                 e.target.nextSibling.style.display = 'block';
               }}
             />
-            <div className="minsa-logo-placeholder" style={{display: 'none'}}>
+            <div className="minsa-logo-placeholder" style={{ display: 'none' }}>
               <div className="minsa-logo-text">MINSA</div>
               <div className="minsa-logo-subtitle">Ministerio de Salud</div>
             </div>
@@ -92,17 +90,16 @@ export default function MinsaLoginPage() {
           <CardTitle>Iniciar Sesión</CardTitle>
           <p className="minsa-login-subtitle">Estadísticas de la Salud Nicaragüense</p>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="minsa-login-form">
             <div className="minsa-form-fields">
               <div className="minsa-form-group">
-                <Label htmlFor="username">
-                  Usuario
-                </Label>
-                <Input 
-                  id="username" 
-                  type="text" 
-                  placeholder="Ingrese su usuario" 
+                <Label htmlFor="username">Usuario</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Ingrese su usuario"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isLoading}
@@ -110,13 +107,11 @@ export default function MinsaLoginPage() {
                 />
               </div>
               <div className="minsa-form-group">
-                <Label htmlFor="password">
-                  Contraseña
-                </Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="Ingrese su contraseña" 
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Ingrese su contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -131,14 +126,14 @@ export default function MinsaLoginPage() {
           </form>
 
           <div className="minsa-login-actions">
-            <button 
+            <button
               onClick={handleGoToCitas}
               className="minsa-go-to-citas"
               disabled={isLoading}
             >
               Ir al Sistema de Citas
             </button>
-            
+
             <div className="minsa-demo-credentials">
               <p>Credenciales de demostración:</p>
               <p>Usuario: <strong>minsa</strong></p>
